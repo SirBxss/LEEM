@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments and IDE
+.venv/
+venv/
+.idea/
+.env
+
+# Generated outputs and model artifacts
+/outputs/
+/checkpoints/
+/runs/
+*.npy
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.parquet
+
+# Confidential/local data
+/bmw_data/
+/private_data/
+/datasets/

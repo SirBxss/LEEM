@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "master_seed": 20260710,
+  "sample_rate_hz": 10.0,
+  "min_sequence_frames": 50,
+  "max_sequence_frames": 80,
+  "s_grid_m": [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],
+  "splits": {
+    "train": 12,
+    "validation": 4,
+    "test": 4
+  },
+  "scenarios": [
+    "conditional_gaussian",
+    "latent_autoregressive",
+    "nonlinear_heavy_tailed"
+  ],
+  "condition_ranges": {
+    "speed_min_mps": 3.0,
+    "speed_max_mps": 38.0,
+    "lane_width_min_m": 2.8,
+    "lane_width_max_m": 4.2,
+    "curvature_abs_max_inv_m": 0.03,
+    "curvature_gradient_abs_max_inv_m2": 0.0002
+  },
+  "max_plausible_abs_error_m": 5.0
+}
