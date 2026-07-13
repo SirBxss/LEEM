@@ -305,9 +305,10 @@ The burst flag is stored as an oracle binary state. This scenario checks sample 
 
 Synthetic visible range is
 
-\[
-r_{\mathrm{valid},t}=30+70(0.6q_{\mathrm{mark},t}+0.4q_{\mathrm{env},t})\ \text{m}.
-\]
+r_valid,t = min(
+    s_(K−1),
+    40 + 80 × (0.6 q_mark,t + 0.4 q_env,t)
+)
 
 A target station is valid when \(s_k\le r_{\mathrm{valid},t}\). Invalid error entries are serialized as zero only for numerical storage and are always marked `False` in `valid_mask`. Losses and metrics must use the mask. Treating stored zeros as observations would bias means, variances, and far-range performance.
 
