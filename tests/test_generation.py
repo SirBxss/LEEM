@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from pathlib import Path
 import unittest
 
 from lane_error_modeling.data.synthetic.config import SyntheticDatasetConfig
@@ -36,3 +37,11 @@ class GenerationTest(unittest.TestCase):
         for sequence_index, length in enumerate(dataset.lengths):
             self.assertFalse(dataset.valid_mask[sequence_index, int(length) :].any())
             self.assertTrue(np.all(dataset.errors[sequence_index, int(length) :] == 0.0))
+
+    def test_smoke_training_has_observations_at_every_station(self) -> None:
+        config = SyntheticDatasetConfig.from_json(
+            Path(__file__).resolve().parents[1] / "configs" / "synthetic_smoke.json"
+        )
+        dataset = generate_dataset(config, "conditional_gaussian", "train")
+        station_counts = np.sum(dataset.valid_mask, axis=(0, 1))
+        self.assertTrue(np.all(station_counts >= 2), station_counts)

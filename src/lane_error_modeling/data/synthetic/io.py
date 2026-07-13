@@ -13,8 +13,8 @@ from typing import Any
 
 import numpy as np
 
-from lane_error_modeling.data.synthetic.config import SyntheticDatasetConfig
-from lane_error_modeling.data.synthetic.schema import FEATURE_NAMES, PaddedDataset
+from .config import SyntheticDatasetConfig
+from .schema import FEATURE_NAMES, PaddedDataset
 
 
 def _sha256(path: Path) -> str:
@@ -127,7 +127,7 @@ def write_manifest(
     manifest = {
         "schema_version": config.schema_version,
         "generator_package": "lane-error-modeling",
-        "generator_version": "0.1.0",
+        "generator_version": "0.2.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "feature_names": list(FEATURE_NAMES),
         "target": "signed reference-normal lateral path error in metres",

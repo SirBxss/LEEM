@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lane-error-modeling"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reproducible synthetic lane-estimation error generation and modelling pipeline"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,8 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-generate-lane-error-data = "lane_error_modeling.synthetic.cli:main"
+generate-lane-error-data = "lane_error_modeling.data.synthetic.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

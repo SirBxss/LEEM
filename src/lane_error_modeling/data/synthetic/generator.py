@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from lane_error_modeling.data.synthetic.conditions import generate_condition_sequence
-from lane_error_modeling.data.synthetic.config import SyntheticDatasetConfig
-from lane_error_modeling.data.synthetic.scenarios import generate_errors
-from lane_error_modeling.data.synthetic.schema import PaddedDataset, SequenceSample, pad_samples
+from .conditions import generate_condition_sequence
+from .config import SyntheticDatasetConfig
+from .scenarios import generate_errors
+from .schema import PaddedDataset, SequenceSample, pad_samples
 
 
 _SPLIT_CODES = {"train": 11, "validation": 23, "test": 37}
@@ -70,8 +70,11 @@ def generate_sequence(
 
     marking_quality = condition_sequence.features[:, 4]
     environment_quality = condition_sequence.features[:, 5]
-    valid_range_m = 30.0 + 70.0 * (
-        0.60 * marking_quality + 0.40 * environment_quality
+    valid_range_m = np.minimum(
+        s_grid_m[-1],
+        40.0
+        + 80.0
+        * (0.60 * marking_quality + 0.40 * environment_quality),
     )
     valid_mask = s_grid_m[None, :] <= valid_range_m[:, None]
     errors = np.where(valid_mask, scenario_output.errors, 0.0)
@@ -120,4 +123,3 @@ def generate_dataset(
         for sequence_index in range(split_size(config, split))
     ]
     return pad_samples(samples, np.asarray(config.s_grid_m, dtype=np.float64))
-

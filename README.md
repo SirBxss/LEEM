@@ -100,7 +100,7 @@ Each `.npz` contains:
 Load a split without enabling pickle:
 
 ```python
-from lane_error_modeling.synthetic.io import load_dataset
+from lane_error_modeling.data.synthetic.io import load_dataset
 
 dataset = load_dataset(
     "outputs/synthetic_smoke/conditional_gaussian/train.npz"
