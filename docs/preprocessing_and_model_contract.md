@@ -14,48 +14,48 @@ Model-specific preprocessing is avoided unless an architecture mathematically re
 
 ## 2. Model-facing sequence data
 
-For \(B\) sequences, maximum padded length \(T\), \(F=6\) conditions, and \(K=21\) look-ahead stations, `SequenceDataset` contains:
+For $B$ sequences, maximum padded length $T$, $F=6$ conditions, and $K=21$ look-ahead stations, `SequenceDataset` contains:
 
 | Field | Shape | Definition |
 |---|---:|---|
-| `sequence_ids` | \([B]\) | Stable independent sequence identities |
-| `conditions` | \([B,T,F]\) | Conditional inputs |
-| `errors` | \([B,T,K]\) | Lateral error profiles |
-| `valid_mask` | \([B,T,K]\) | Observed target entries |
-| `lengths` | \([B]\) | Unpadded sequence lengths |
-| `feature_names` | \([F]\) metadata | Ordered semantic feature names |
-| `s_grid_m` | \([K]\) | Ordered look-ahead stations |
+| `sequence_ids` | $[B]$ | Stable independent sequence identities |
+| `conditions` | $[B,T,F]$ | Conditional inputs |
+| `errors` | $[B,T,K]$ | Lateral error profiles |
+| `valid_mask` | $[B,T,K]$ | Observed target entries |
+| `lengths` | $[B]$ | Unpadded sequence lengths |
+| `feature_names` | $[F]$ metadata | Ordered semantic feature names |
+| `s_grid_m` | $[K]$ | Ordered look-ahead stations |
 
 The temporal activity mask is
 
-\[
+$$
 M^{\mathrm{time}}_{i,t}=\mathbb 1(t<L_i).
-\]
+$$
 
-The target mask \(M^{\mathrm{target}}_{i,t,k}\) must be false for all padding frames. A stored numerical zero is not automatically an observed zero. Invalid target and padding entries are required to be numerically zero so accidental unmasked use is easier to detect, but every loss and metric must still apply the appropriate mask.
+The target mask $M^{\mathrm{target}}_{i,t,k}$ must be false for all padding frames. A stored numerical zero is not automatically an observed zero. Invalid target and padding entries are required to be numerically zero so accidental unmasked use is easier to detect, but every loss and metric must still apply the appropriate mask.
 
 ## 3. Train-only condition standardization
 
-The six conditions use different units and scales. For feature \(f\), statistics are fitted over active frames of the training split only:
+The six conditions use different units and scales. For feature $f$, statistics are fitted over active frames of the training split only:
 
-\[
+$$
 \mu_f^X=
 \frac{1}{N_{\mathrm{active}}}
 \sum_{i,t:M^{\mathrm{time}}_{i,t}=1}X_{i,t,f},
-\]
+$$
 
-\[
+$$
 (\sigma_f^X)^2=
 \frac{1}{N_{\mathrm{active}}}
 \sum_{i,t:M^{\mathrm{time}}_{i,t}=1}
 (X_{i,t,f}-\mu_f^X)^2.
-\]
+$$
 
 The transform is
 
-\[
+$$
 \tilde X_{i,t,f}=\frac{X_{i,t,f}-\mu_f^X}{\sigma_f^X}.
-\]
+$$
 
 Population standard deviation (`ddof=0`) is used because these values define a deterministic numerical transform rather than an unbiased variance estimator. Validation and test frames never contribute to these statistics.
 
@@ -65,42 +65,42 @@ If a training feature has scale below the configured numerical threshold, its tr
 
 Error magnitude generally changes with look-ahead distance. A single global target scale would cause high-variance distant stations to dominate optimization, whereas independent station scaling preserves a comparable numerical scale.
 
-For station \(k\), let
+For station $k$, let
 
-\[
+$$
 \mathcal O_k=
 \{(i,t):M^{\mathrm{target}}_{i,t,k}=1\}.
-\]
+$$
 
 Only observed training targets are used:
 
-\[
+$$
 \mu_k^Y=
 \frac{1}{|\mathcal O_k|}
 \sum_{(i,t)\in\mathcal O_k}Y_{i,t,k},
-\]
+$$
 
-\[
+$$
 (\sigma_k^Y)^2=
 \frac{1}{|\mathcal O_k|}
 \sum_{(i,t)\in\mathcal O_k}
 (Y_{i,t,k}-\mu_k^Y)^2,
-\]
+$$
 
-\[
+$$
 \tilde Y_{i,t,k}=
 \frac{Y_{i,t,k}-\mu_k^Y}{\sigma_k^Y}
 \quad\text{only when}\quad
 M^{\mathrm{target}}_{i,t,k}=1.
-\]
+$$
 
 Invalid values remain zero rather than being transformed. Every station requires at least two observed training targets. Constant station scales are replaced by 1 and explicitly recorded.
 
-For a generated standardized sample \(\tilde Y\), the physical-unit inverse is
+For a generated standardized sample $\tilde Y$, the physical-unit inverse is
 
-\[
+$$
 Y_{i,t,k}=\sigma_k^Y\tilde Y_{i,t,k}+\mu_k^Y.
-\]
+$$
 
 All calibration, tail, distance, and planner-level metrics must be computed after this inverse transformation into metres. Reporting only normalized errors would hide the physical importance of look-ahead-dependent uncertainty.
 
@@ -178,11 +178,11 @@ The base contract rejects raw, non-standardized fitting data. This ensures the s
 
 Generated values use the common shape
 
-\[
+$$
 [S,B,T,K],
-\]
+$$
 
-where \(S\) is the number of stochastic samples. The result also contains sequence lengths, look-ahead grid, standardized/physical-unit status, and an optional evaluation mask.
+where $S$ is the number of stochastic samples. The result also contains sequence lengths, look-ahead grid, standardized/physical-unit status, and an optional evaluation mask.
 
 Padding frames must be numerically zero. The supplied seed must completely determine stochastic sampling. A model may generate a full path profile beyond the observed evaluation mask; the mask identifies which real targets are available for comparison, not necessarily which synthetic values the model is allowed to generate.
 
@@ -196,8 +196,9 @@ Standardization is common, but final evaluation is performed in physical units. 
 
 - Per-station standardization does not remove spatial dependence; covariance must still be modelled.
 - The Gaussian baseline now uses pairwise observed residual covariance, diagonal shrinkage, and positive-definite projection instead of complete-case deletion.
+- The common evaluator now freezes training-derived histogram/tail references, selects model hyperparameters on validation only, and computes physical-unit test metrics once.
 - Batching is NumPy-based. RC-GAN will later receive a thin PyTorch adapter without changing the stored data contract.
 - The six-feature contract is provisional until BMW signal mapping and real-data feature analysis.
 - Standardization parameters will change when the final training split changes; all models must then be retrained.
 
-The next model implementation is AIOHMM. It must preserve the same standardized sequence contract while adding autoregressive emissions and input-dependent latent-state transitions.
+The next model implementation is AIOHMM. It must preserve this data contract and the [common evaluation protocol](evaluation_protocol.md) while adding autoregressive emissions and input-dependent latent-state transitions.

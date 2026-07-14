@@ -201,29 +201,27 @@ class ConditionalMultivariateGaussian(ProbabilisticSequenceModel):
                 station_targets - station_design @ station_coefficients
             )
 
-        raw_covariance = np.zeros((station_count, station_count), dtype=np.float64)
-        pair_counts = np.zeros((station_count, station_count), dtype=np.int64)
-        insufficient_pair_count = 0
-        for first in range(station_count):
-            for second in range(first, station_count):
-                jointly_observed = valid_mask[:, first] & valid_mask[:, second]
-                count = int(np.count_nonzero(jointly_observed))
-                pair_counts[first, second] = pair_counts[second, first] = count
-                if first == second:
-                    value = float(
-                        np.mean(residuals[jointly_observed, first] ** 2)
-                    )
-                elif count >= self.config.minimum_pair_observations:
-                    value = float(
-                        np.mean(
-                            residuals[jointly_observed, first]
-                            * residuals[jointly_observed, second]
-                        )
-                    )
-                else:
-                    value = 0.0
-                    insufficient_pair_count += 1
-                raw_covariance[first, second] = raw_covariance[second, first] = value
+        observed_as_integer = valid_mask.astype(np.int64)
+        pair_counts = observed_as_integer.T @ observed_as_integer
+        cross_products = residuals.T @ residuals
+        raw_covariance = np.zeros_like(cross_products)
+        sufficiently_observed = (
+            pair_counts >= self.config.minimum_pair_observations
+        )
+        np.divide(
+            cross_products,
+            pair_counts,
+            out=raw_covariance,
+            where=sufficiently_observed,
+        )
+        diagonal = np.diag_indices(station_count)
+        raw_covariance[diagonal] = (
+            cross_products[diagonal] / pair_counts[diagonal]
+        )
+        insufficient_pair_count = int(
+            np.count_nonzero(np.triu(~sufficiently_observed, k=1))
+        )
+        del observed_as_integer, cross_products, residuals
 
         diagonal = np.diag(np.diag(raw_covariance))
         shrunk_covariance = (
@@ -360,40 +358,43 @@ class ConditionalMultivariateGaussian(ProbabilisticSequenceModel):
         state = self._require_state()
         mean = self.predict_mean(dataset.conditions, dataset.lengths).astype(np.float64)
         result = np.zeros(dataset.n_sequences, dtype=np.float64)
-        factor_cache: dict[
-            bytes, tuple[NDArray[np.int64], NDArray[np.float64], float]
-        ] = {}
         log_two_pi = float(np.log(2.0 * np.pi))
 
-        for sequence_index, length in enumerate(dataset.lengths):
-            for time_index in range(int(length)):
-                observed_mask = dataset.valid_mask[sequence_index, time_index]
-                if not np.any(observed_mask):
-                    continue
-                key = np.packbits(observed_mask, bitorder="little").tobytes()
-                cached = factor_cache.get(key)
-                if cached is None:
-                    observed_indices = np.flatnonzero(observed_mask).astype(np.int64)
-                    marginal_covariance = state.covariance[
-                        np.ix_(observed_indices, observed_indices)
-                    ]
-                    cholesky = np.linalg.cholesky(marginal_covariance)
-                    normalization = (
-                        len(observed_indices) * log_two_pi
-                        + 2.0 * float(np.sum(np.log(np.diag(cholesky))))
-                    )
-                    cached = (observed_indices, cholesky, normalization)
-                    factor_cache[key] = cached
-                observed_indices, cholesky, normalization = cached
-                residual = (
-                    dataset.errors[sequence_index, time_index, observed_indices]
-                    .astype(np.float64)
-                    - mean[sequence_index, time_index, observed_indices]
-                )
-                whitened = np.linalg.solve(cholesky, residual)
-                result[sequence_index] += -0.5 * (
-                    normalization + float(whitened @ whitened)
-                )
+        time_mask = dataset.time_mask
+        active_masks = dataset.valid_mask[time_mask]
+        active_residuals = dataset.errors[time_mask].astype(np.float64) - mean[
+            time_mask
+        ]
+        sequence_indices = np.repeat(
+            np.arange(dataset.n_sequences, dtype=np.int64),
+            dataset.lengths.astype(np.int64),
+        )
+        packed_masks = np.packbits(active_masks, axis=1, bitorder="little")
+        _, mask_group = np.unique(packed_masks, axis=0, return_inverse=True)
+
+        for group_index in range(int(np.max(mask_group)) + 1):
+            frame_indices = np.flatnonzero(mask_group == group_index)
+            observed_indices = np.flatnonzero(active_masks[frame_indices[0]])
+            if len(observed_indices) == 0:
+                continue
+            marginal_covariance = state.covariance[
+                np.ix_(observed_indices, observed_indices)
+            ]
+            cholesky = np.linalg.cholesky(marginal_covariance)
+            normalization = (
+                len(observed_indices) * log_two_pi
+                + 2.0 * float(np.sum(np.log(np.diag(cholesky))))
+            )
+            residuals = active_residuals[frame_indices][:, observed_indices]
+            whitened = np.linalg.solve(cholesky, residuals.T)
+            frame_log_probabilities = -0.5 * (
+                normalization + np.sum(whitened**2, axis=0)
+            )
+            result += np.bincount(
+                sequence_indices[frame_indices],
+                weights=frame_log_probabilities,
+                minlength=dataset.n_sequences,
+            )
         return result
 
     def sample(

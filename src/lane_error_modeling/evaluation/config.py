@@ -1,0 +1,254 @@
+"""Strict configuration schemas for common evaluation and Gaussian experiments."""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+import json
+import math
+from pathlib import Path
+import re
+from typing import Any, Mapping
+
+from lane_error_modeling.models.gaussian import GaussianConfig
+
+
+EXPERIMENT_SCHEMA_VERSION = "1.0.0"
+SUPPORTED_SYNTHETIC_SCENARIOS = (
+    "conditional_gaussian",
+    "latent_autoregressive",
+    "nonlinear_heavy_tailed",
+)
+
+
+def _reject_unknown(raw: Mapping[str, Any], known: set[str], name: str) -> None:
+    unknown = set(raw) - known
+    if unknown:
+        fields = ", ".join(sorted(unknown))
+        raise ValueError(f"unknown {name} fields: {fields}")
+
+
+@dataclass(frozen=True)
+class EvaluationConfig:
+    """Computational and statistical choices shared by all model families."""
+
+    interval_levels: tuple[float, ...] = (0.50, 0.90, 0.95)
+    histogram_bin_count: int = 80
+    histogram_clip_quantiles: tuple[float, float] = (0.001, 0.999)
+    tail_probabilities: tuple[float, ...] = (0.95, 0.99)
+    crps_chunk_size: int = 4096
+    max_distribution_values: int = 200_000
+    max_energy_frames: int = 2_000
+    energy_pair_count: int = 256
+    max_dependence_frames: int = 20_000
+    max_dependence_samples: int = 16
+    metric_seed: int = 20260714
+
+    def validate(self) -> None:
+        if not self.interval_levels or any(
+            not 0.0 < value < 1.0 for value in self.interval_levels
+        ):
+            raise ValueError("interval_levels must lie strictly inside (0, 1)")
+        if tuple(sorted(set(self.interval_levels))) != self.interval_levels:
+            raise ValueError("interval_levels must be unique and increasing")
+        if self.histogram_bin_count < 10:
+            raise ValueError("histogram_bin_count must be at least 10")
+        if (
+            len(self.histogram_clip_quantiles) != 2
+            or not 0.0 <= self.histogram_clip_quantiles[0]
+            < self.histogram_clip_quantiles[1]
+            <= 1.0
+        ):
+            raise ValueError("histogram_clip_quantiles must be increasing in [0, 1]")
+        if not self.tail_probabilities or any(
+            not 0.5 < value < 1.0 for value in self.tail_probabilities
+        ):
+            raise ValueError("tail_probabilities must lie strictly inside (0.5, 1)")
+        if tuple(sorted(set(self.tail_probabilities))) != self.tail_probabilities:
+            raise ValueError("tail_probabilities must be unique and increasing")
+        for name in (
+            "crps_chunk_size",
+            "max_distribution_values",
+            "max_energy_frames",
+            "energy_pair_count",
+            "max_dependence_frames",
+            "max_dependence_samples",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise ValueError(f"{name} must be a positive integer")
+        if isinstance(self.metric_seed, bool) or not isinstance(self.metric_seed, int):
+            raise ValueError("metric_seed must be an integer")
+        if self.metric_seed < 0:
+            raise ValueError("metric_seed must be non-negative")
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "EvaluationConfig":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "evaluation configuration")
+        data = dict(raw)
+        for name in (
+            "interval_levels",
+            "histogram_clip_quantiles",
+            "tail_probabilities",
+        ):
+            if name in data:
+                data[name] = tuple(data[name])
+        config = cls(**data)
+        config.validate()
+        return config
+
+
+@dataclass(frozen=True)
+class GaussianSearchSpace:
+    """Validation-only Cartesian search space for the Gaussian baseline."""
+
+    ridge_penalties: tuple[float, ...] = (0.0, 1e-3, 1e-2)
+    covariance_shrinkages: tuple[float, ...] = (0.0, 0.05, 0.10, 0.20)
+    minimum_eigenvalue: float = 1e-6
+    minimum_station_observations: int = 32
+    minimum_pair_observations: int = 32
+
+    def validate(self) -> None:
+        if not self.ridge_penalties or not self.covariance_shrinkages:
+            raise ValueError("Gaussian search dimensions must not be empty")
+        for name, values in (
+            ("ridge_penalties", self.ridge_penalties),
+            ("covariance_shrinkages", self.covariance_shrinkages),
+        ):
+            if any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                for value in values
+            ):
+                raise ValueError(f"{name} must contain finite numbers")
+            if len(set(values)) != len(values):
+                raise ValueError(f"{name} must not contain duplicates")
+        if tuple(sorted(self.ridge_penalties)) != self.ridge_penalties:
+            raise ValueError("ridge_penalties must be increasing")
+        if tuple(sorted(self.covariance_shrinkages)) != self.covariance_shrinkages:
+            raise ValueError("covariance_shrinkages must be increasing")
+        for ridge_penalty in self.ridge_penalties:
+            if ridge_penalty < 0:
+                raise ValueError("ridge penalties must be non-negative")
+        for shrinkage in self.covariance_shrinkages:
+            if not 0.0 <= shrinkage <= 1.0:
+                raise ValueError("covariance shrinkages must lie in [0, 1]")
+        GaussianConfig(
+            ridge_penalty=float(self.ridge_penalties[0]),
+            covariance_shrinkage=float(self.covariance_shrinkages[0]),
+            minimum_eigenvalue=self.minimum_eigenvalue,
+            minimum_station_observations=self.minimum_station_observations,
+            minimum_pair_observations=self.minimum_pair_observations,
+        ).validate()
+
+    def candidates(self) -> tuple[GaussianConfig, ...]:
+        self.validate()
+        return tuple(
+            GaussianConfig(
+                ridge_penalty=float(ridge_penalty),
+                covariance_shrinkage=float(shrinkage),
+                minimum_eigenvalue=self.minimum_eigenvalue,
+                minimum_station_observations=self.minimum_station_observations,
+                minimum_pair_observations=self.minimum_pair_observations,
+            )
+            for ridge_penalty in self.ridge_penalties
+            for shrinkage in self.covariance_shrinkages
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "GaussianSearchSpace":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "Gaussian search")
+        data = dict(raw)
+        for name in ("ridge_penalties", "covariance_shrinkages"):
+            if name in data:
+                data[name] = tuple(data[name])
+        search = cls(**data)
+        search.validate()
+        return search
+
+
+@dataclass(frozen=True)
+class GaussianExperimentConfig:
+    """Complete reproducible configuration for one multi-scenario experiment."""
+
+    schema_version: str
+    experiment_name: str
+    dataset_root: str
+    scenarios: tuple[str, ...]
+    sample_count: int
+    sample_seed: int
+    evaluation: EvaluationConfig
+    gaussian_search: GaussianSearchSpace
+    create_plots: bool = True
+
+    def validate(self) -> None:
+        if self.schema_version != EXPERIMENT_SCHEMA_VERSION:
+            raise ValueError(f"unsupported experiment schema {self.schema_version!r}")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", self.experiment_name):
+            raise ValueError("experiment_name must be a lowercase filesystem-safe slug")
+        dataset_path = Path(self.dataset_root)
+        if dataset_path.is_absolute() or ".." in dataset_path.parts:
+            raise ValueError("dataset_root must be a project-relative path")
+        if not self.scenarios or len(set(self.scenarios)) != len(self.scenarios):
+            raise ValueError("scenarios must be non-empty and unique")
+        unsupported = set(self.scenarios) - set(SUPPORTED_SYNTHETIC_SCENARIOS)
+        if unsupported:
+            raise ValueError(f"unsupported scenarios: {sorted(unsupported)}")
+        if isinstance(self.sample_count, bool) or not isinstance(self.sample_count, int):
+            raise ValueError("sample_count must be an integer")
+        if self.sample_count < 8:
+            raise ValueError("sample_count must be at least eight")
+        if isinstance(self.sample_seed, bool) or not isinstance(self.sample_seed, int):
+            raise ValueError("sample_seed must be an integer")
+        if self.sample_seed < 0:
+            raise ValueError("sample_seed must be non-negative")
+        if not isinstance(self.create_plots, bool):
+            raise ValueError("create_plots must be boolean")
+        self.evaluation.validate()
+        self.gaussian_search.validate()
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return {
+            "schema_version": self.schema_version,
+            "experiment_name": self.experiment_name,
+            "dataset_root": self.dataset_root,
+            "scenarios": list(self.scenarios),
+            "sample_count": self.sample_count,
+            "sample_seed": self.sample_seed,
+            "evaluation": self.evaluation.to_dict(),
+            "gaussian_search": self.gaussian_search.to_dict(),
+            "create_plots": self.create_plots,
+        }
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "GaussianExperimentConfig":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "experiment configuration")
+        data = dict(raw)
+        if "scenarios" in data:
+            data["scenarios"] = tuple(data["scenarios"])
+        evaluation = data.get("evaluation", {})
+        search = data.get("gaussian_search", {})
+        if not isinstance(evaluation, Mapping) or not isinstance(search, Mapping):
+            raise ValueError("evaluation and gaussian_search must be objects")
+        data["evaluation"] = EvaluationConfig.from_dict(evaluation)
+        data["gaussian_search"] = GaussianSearchSpace.from_dict(search)
+        config = cls(**data)
+        config.validate()
+        return config
+
+    @classmethod
+    def load(cls, path: str | Path) -> "GaussianExperimentConfig":
+        with Path(path).open("r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+        if not isinstance(raw, dict):
+            raise ValueError("experiment configuration root must be an object")
+        return cls.from_dict(raw)

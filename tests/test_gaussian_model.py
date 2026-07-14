@@ -113,6 +113,39 @@ class ConditionalMultivariateGaussianTest(unittest.TestCase):
             _config(covariance_shrinkage=0.15, minimum_eigenvalue=1e-6)
         )
         model.fit(train)
+        train_mean = np.zeros_like(train.errors, dtype=np.float64)
+        active_conditions = train.conditions[train.time_mask].astype(np.float64)
+        active_design = np.column_stack(
+            (np.ones(len(active_conditions), dtype=np.float64), active_conditions)
+        )
+        train_mean[train.time_mask] = active_design @ model.coefficients
+        train_residuals = np.zeros_like(train.errors, dtype=np.float64)
+        train_residuals[train.valid_mask] = (
+            train.errors[train.valid_mask] - train_mean[train.valid_mask]
+        )
+        expected_counts = np.zeros(
+            (train.n_stations, train.n_stations), dtype=np.int64
+        )
+        expected_raw_covariance = np.zeros_like(expected_counts, dtype=np.float64)
+        for first in range(train.n_stations):
+            for second in range(train.n_stations):
+                jointly_observed = (
+                    train.valid_mask[:, :, first]
+                    & train.valid_mask[:, :, second]
+                )
+                expected_counts[first, second] = np.count_nonzero(jointly_observed)
+                expected_raw_covariance[first, second] = np.mean(
+                    train_residuals[:, :, first][jointly_observed]
+                    * train_residuals[:, :, second][jointly_observed]
+                )
+        np.testing.assert_array_equal(model.pair_observation_counts, expected_counts)
+        np.testing.assert_allclose(
+            model.raw_pairwise_covariance,
+            expected_raw_covariance,
+            rtol=1e-12,
+            atol=1e-12,
+        )
+
         actual = model.log_probability(evaluation)
         predicted_mean = model.predict_mean(
             evaluation.conditions, evaluation.lengths

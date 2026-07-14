@@ -25,17 +25,17 @@ The common `SequenceStandardizer` must be fitted on the training split only. Val
 
 Let the augmented input be
 
-\[
+$$
 \mathbf z_{i,t}=
 \begin{bmatrix}
 1 & \tilde{\mathbf X}_{i,t}^{\mathsf T}
 \end{bmatrix}^{\mathsf T}
 \in\mathbb R^{F+1}.
-\]
+$$
 
 The model is
 
-\[
+$$
 \tilde{\mathbf Y}_{i,t}\mid\tilde{\mathbf X}_{i,t}
 \sim
 \mathcal N
@@ -43,17 +43,17 @@ The model is
 \mathbf B^{\mathsf T}\mathbf z_{i,t},
 \boldsymbol\Sigma
 \right).
-\]
+$$
 
 Because visible range can vary, station $k$ is fitted only from its observed training set
 
-\[
+$$
 \mathcal O_k=\{(i,t):M_{i,t,k}=1\}.
-\]
+$$
 
 The coefficient vector is estimated by masked ridge regression:
 
-\[
+$$
 \hat{\boldsymbol\beta}_k=
 \arg\min_{\boldsymbol\beta}
 \sum_{(i,t)\in\mathcal O_k}
@@ -61,7 +61,7 @@ The coefficient vector is estimated by masked ridge regression:
 \tilde Y_{i,t,k}-\mathbf z_{i,t}^{\mathsf T}\boldsymbol\beta
 \right)^2
 +\lambda\lVert\boldsymbol\beta_{1:F}\rVert_2^2.
-\]
+$$
 
 The intercept is not penalized. Separate masks avoid treating serialized zeros as measurements and avoid discarding near-range observations merely because a far station is unavailable.
 
@@ -69,27 +69,27 @@ The intercept is not penalized. Separate masks avoid treating serialized zeros a
 
 Observed residuals are
 
-\[
+$$
 r_{i,t,k}=
 \tilde Y_{i,t,k}-
 \mathbf z_{i,t}^{\mathsf T}\hat{\boldsymbol\beta}_k.
-\]
+$$
 
 For stations $k$ and $\ell$, define their joint observation set
 
-\[
+$$
 \mathcal O_{k\ell}=
 \{(i,t):M_{i,t,k}=1\land M_{i,t,\ell}=1\}.
-\]
+$$
 
 The raw covariance entry is the residual cross-second moment
 
-\[
+$$
 \hat\Sigma^{\mathrm{pair}}_{k\ell}=
 \frac{1}{|\mathcal O_{k\ell}|}
 \sum_{(i,t)\in\mathcal O_{k\ell}}
 r_{i,t,k}r_{i,t,\ell}.
-\]
+$$
 
 If an off-diagonal pair has fewer than the configured minimum number of joint observations, that raw entry is set to zero and a fit warning is recorded. Diagonal entries require the stricter per-station minimum and are never silently omitted.
 
@@ -97,28 +97,28 @@ Pairwise covariance estimation preserves more data than complete-case deletion, 
 
 First, diagonal shrinkage is used:
 
-\[
+$$
 \boldsymbol\Sigma^{\mathrm{shrink}}=
 (1-\alpha)\hat{\boldsymbol\Sigma}^{\mathrm{pair}}
 +\alpha\operatorname{diag}
 \left(\hat{\boldsymbol\Sigma}^{\mathrm{pair}}\right).
-\]
+$$
 
 Second, with eigendecomposition
 
-\[
+$$
 \boldsymbol\Sigma^{\mathrm{shrink}}
 =\mathbf Q\operatorname{diag}(d_1,\ldots,d_K)\mathbf Q^{\mathsf T},
-\]
+$$
 
 the final covariance is
 
-\[
+$$
 \hat{\boldsymbol\Sigma}=
 \mathbf Q
 \operatorname{diag}(\max(d_1,\epsilon),\ldots,\max(d_K,\epsilon))
 \mathbf Q^{\mathsf T}.
-\]
+$$
 
 This projection guarantees a positive-definite covariance for Cholesky sampling and likelihood evaluation. The number of clipped eigenvalues is recorded in the fit report.
 
@@ -126,7 +126,7 @@ This projection guarantees a positive-definite covariance for Cholesky sampling 
 
 For one frame, let $\mathcal V_{i,t}$ contain its observed station indices. Missing dimensions are marginalized, not imputed. The contribution is the Gaussian density of the observed subvector:
 
-\[
+$$
 \log p
 \left(
 \tilde{\mathbf Y}_{i,t,\mathcal V}
@@ -141,9 +141,11 @@ For one frame, let $\mathcal V_{i,t}$ contain its observed station indices. Miss
 \hat{\boldsymbol\Sigma}_{\mathcal V,\mathcal V}^{-1}
 \mathbf r_{\mathcal V}
 \right].
-\]
+$$
 
-Frame contributions are summed to obtain a per-sequence log probability. Cholesky factors are cached for repeated mask patterns. Reported split NLL is divided by the number of observed scalar targets, because sequences and visible ranges differ in length.
+Frame contributions are summed to obtain a per-sequence log probability. One Cholesky factor is computed for each repeated mask pattern. Reported split NLL is divided by the number of observed scalar targets, because sequences and visible ranges differ in length.
+
+The implementation groups all active frames by their packed observation-mask pattern and solves every residual in a group as one matrix operation. Pairwise residual counts and second moments are likewise computed as matrix products over zero-masked residuals. These vectorizations preserve the estimator while making prototype-scale validation searches practical.
 
 NLL remains a secondary diagnostic: RC-GAN has no tractable normalized likelihood, so it cannot be a primary three-model ranking metric.
 
@@ -151,13 +153,13 @@ NLL remains a secondary diagnostic: RC-GAN has no tractable normalized likelihoo
 
 For each active condition frame:
 
-\[
+$$
 \tilde{\mathbf Y}^{(s)}_{i,t}=
 \hat{\mathbf B}^{\mathsf T}\mathbf z_{i,t}
 +\mathbf L\boldsymbol\epsilon^{(s)}_{i,t},
 \qquad
 \boldsymbol\epsilon^{(s)}_{i,t}\sim\mathcal N(\mathbf 0,\mathbf I),
-\]
+$$
 
 where $\mathbf L\mathbf L^{\mathsf T}=\hat{\boldsymbol\Sigma}$. The seed fully determines the samples. Sampling returns full station profiles on active frames even where a real target is unavailable; `valid_mask` remains evaluation metadata. Sequence padding is zero.
 
@@ -205,7 +207,7 @@ The smoke verification fits the same baseline independently to all three synthet
 
 ## 10. Evaluation and expected diagnostics
 
-Common cross-model evaluation later uses physical-unit sample metrics. Gaussian-specific diagnostics additionally include:
+The common evaluator uses physical-unit sample metrics that also apply to AIOHMM and RC-GAN. Gaussian-specific diagnostics additionally include:
 
 - masked conditional-mean RMSE;
 - per-observed-value NLL;
@@ -217,6 +219,8 @@ Common cross-model evaluation later uses physical-unit sample metrics. Gaussian-
 - coverage by station and condition bin.
 
 Persistent residual autocorrelation would motivate AIOHMM/RC-GAN. Heavy tails, multimodality, condition-dependent spread, or systematic coverage errors expose baseline misspecification rather than an implementation failure.
+
+Candidate ridge and covariance-shrinkage settings are selected using validation NLL only. The frozen model is then evaluated once on the held-out test split. Metric definitions, bounded approximations, oracle restrictions, and artifact provenance are specified in the [common evaluation protocol](evaluation_protocol.md).
 
 ## 11. Assumptions and limitations
 
