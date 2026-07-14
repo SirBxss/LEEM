@@ -1,10 +1,10 @@
-# Common Evaluation and Gaussian Experiment Protocol
+# Common Evaluation and Model Experiment Protocol
 
 ## 1. Purpose
 
-This phase fixes the experimental rules before AIOHMM and RC-GAN are implemented. All three model families must later receive the same condition sequences, target masks, physical-unit transformation, sample count, metric definitions, random-seed policy, and test split.
+This protocol fixes the experimental rules for Gaussian, AIOHMM, and RC-GAN. All three model families receive the same condition sequences, target masks, physical-unit transformation, sample count, metric definitions, random-seed policy, and test split.
 
-The Gaussian is the first model connected to the evaluator. Its synthetic results validate the protocol and establish baseline behaviour; they are not final evidence about BMW perception errors or planner performance.
+Gaussian and AIOHMM are connected to the evaluator. Their synthetic results validate the protocol and establish controlled baseline behaviour; they are not final evidence about BMW perception errors or planner performance.
 
 ## 2. Split discipline
 
@@ -13,8 +13,8 @@ The experiment order is fixed:
 1. load and verify the training and validation archives;
 2. fit the standardizer on training data only;
 3. fit the histogram ranges and tail thresholds on physical-unit training errors only;
-4. fit every Gaussian candidate on standardized training data;
-5. rank candidates using validation NLL per observed standardized target;
+4. fit every candidate of the current model family on standardized training data;
+5. rank Gaussian and AIOHMM candidates using validation NLL per observed standardized target;
 6. freeze the selected configuration and refit it on training data;
 7. open the test archive for the first time;
 8. generate a fixed number of seeded test samples;
@@ -130,7 +130,7 @@ These diagnostics are especially important for the Gaussian baseline. A small ma
 
 Dependence calculations use deterministic bounded frame/sample subsets and record their effective sizes.
 
-## 11. Gaussian density metric and selection
+## 11. Density metrics and validation selection
 
 Gaussian candidates form a Cartesian grid of ridge penalties and covariance-shrinkage values. The selected candidate minimizes
 
@@ -142,6 +142,8 @@ $$
 where $N_{\mathrm{val}}$ is the number of observed scalar validation targets. Missing dimensions are marginalized by the Gaussian model.
 
 NLL is persisted as a secondary Gaussian diagnostic. It cannot be a primary three-model comparison metric because RC-GAN has no tractable normalized likelihood.
+
+AIOHMM candidates combine hidden-state counts and deterministic initialization seeds. They use the same validation NLL definition, with missing current dimensions marginalized and the sequence likelihood computed by forward-backward inference. Ties prefer fewer states and then the lower seed. AIOHMM NLL is also secondary and must not appear in an all-model leaderboard.
 
 ## 12. Synthetic oracle diagnostics
 
@@ -168,7 +170,7 @@ Each scenario output contains:
 | Artifact | Purpose |
 |---|---|
 | `standardizer.json` | Frozen training-only transform |
-| `gaussian_model.npz` | Selected model parameters and configuration |
+| `gaussian_model.npz` or `aiohmm_model.npz` | Selected model parameters and configuration |
 | `evaluation_reference.json` | Training-derived histogram edges and tails |
 | `model_selection.json` | Every candidate and validation score |
 | `evaluation.json` | Common sample-based test metrics |
@@ -195,6 +197,14 @@ python scripts/run_gaussian_experiment.py `
   --output outputs/experiments/gaussian_smoke
 ```
 
+Then run the AIOHMM smoke experiment against the same synthetic archives:
+
+```powershell
+python scripts/run_aiohmm_experiment.py `
+  --config configs/aiohmm_experiment_smoke.json `
+  --output outputs/experiments/aiohmm_smoke
+```
+
 After it passes, generate the prototype once:
 
 ```powershell
@@ -211,9 +221,18 @@ python scripts/run_gaussian_experiment.py `
   --output outputs/experiments/gaussian_prototype
 ```
 
+Run the AIOHMM prototype only after its smoke experiment and the complete unit
+suite pass:
+
+```powershell
+python scripts/run_aiohmm_experiment.py `
+  --config configs/aiohmm_experiment_prototype.json `
+  --output outputs/experiments/aiohmm_prototype
+```
+
 Outputs are ignored by Git. Do not commit generated archives, models, figures, result JSON, BMW signal names, or BMW-derived measurements to the public repository.
 
-## 16. Phase exit criteria
+## 16. Gaussian Phase 5 exit criteria
 
 Phase 5 is complete when:
 
@@ -225,4 +244,24 @@ Phase 5 is complete when:
 6. repeated runs with the same inputs and seeds reproduce numerical metrics;
 7. no synthetic result is described as final BMW performance or safety evidence.
 
-After these criteria pass, the next implementation phase is AIOHMM using this unchanged evaluator.
+These criteria established the baseline before AIOHMM implementation.
+
+## 17. AIOHMM Phase 6 exit criteria
+
+Phase 6 is complete when:
+
+1. exact forward-backward inference agrees with brute-force state enumeration;
+2. fitting supports partial target masks and improves training likelihood on a controlled autoregressive dataset;
+3. sampling is seeded, recursive, variable-length, and has exact zero padding;
+4. saved and restored models reproduce densities and seeded samples;
+5. state counts and restarts are selected using validation data only;
+6. test archives are loaded only after selection is frozen;
+7. the three-scenario smoke experiment finishes and exposes both expected temporal improvements and remaining limitations;
+8. the common Gaussian/AIOHMM comparison uses physical-unit sample metrics rather than model-specific NLL;
+9. all prior tests remain passing;
+10. no synthetic latent state or result is presented as BMW sensor behaviour.
+
+After this gate, RC-GAN may be implemented without changing the frozen common
+data and evaluation contracts. Any metric or protocol revision discovered during
+RC-GAN development must be applied retrospectively to Gaussian and AIOHMM before
+final comparison.

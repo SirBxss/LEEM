@@ -7,8 +7,11 @@ from .base import (
     SampleResult,
 )
 from .gaussian import ConditionalMultivariateGaussian, GaussianConfig
+from .aiohmm import AIOHMMConfig, AutoregressiveInputOutputHMM
 
 __all__ = [
+    "AIOHMMConfig",
+    "AutoregressiveInputOutputHMM",
     "FitReport",
     "ConditionalMultivariateGaussian",
     "GaussianConfig",

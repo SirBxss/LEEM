@@ -195,10 +195,11 @@ Standardization is common, but final evaluation is performed in physical units. 
 ## 11. Known limitations and next decisions
 
 - Per-station standardization does not remove spatial dependence; covariance must still be modelled.
-- The Gaussian baseline now uses pairwise observed residual covariance, diagonal shrinkage, and positive-definite projection instead of complete-case deletion.
-- The common evaluator now freezes training-derived histogram/tail references, selects model hyperparameters on validation only, and computes physical-unit test metrics once.
+- The Gaussian baseline uses pairwise observed residual covariance, diagonal shrinkage, and positive-definite projection instead of complete-case deletion.
+- AIOHMM preserves this contract while adding masked autoregressive emissions, input-dependent latent-state transitions, and state-specific spatial covariance.
+- The common evaluator freezes training-derived histogram/tail references, selects model hyperparameters on validation only, and computes physical-unit test metrics once.
 - Batching is NumPy-based. RC-GAN will later receive a thin PyTorch adapter without changing the stored data contract.
 - The six-feature contract is provisional until BMW signal mapping and real-data feature analysis.
 - Standardization parameters will change when the final training split changes; all models must then be retrained.
 
-The next model implementation is AIOHMM. It must preserve this data contract and the [common evaluation protocol](evaluation_protocol.md) while adding autoregressive emissions and input-dependent latent-state transitions.
+The next model implementation is RC-GAN. Its PyTorch data adapter must preserve this data contract and the [common evaluation protocol](evaluation_protocol.md). In particular, adversarial training does not justify changing split membership, feature scaling, target masks, sample shape, physical-unit metrics, or test-access rules.

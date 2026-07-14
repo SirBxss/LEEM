@@ -1,4 +1,4 @@
-"""Strict configuration schemas for common evaluation and Gaussian experiments."""
+"""Strict schemas for common evaluation, Gaussian, and AIOHMM experiments."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 from typing import Any, Mapping
 
+from lane_error_modeling.models.aiohmm import AIOHMMConfig
 from lane_error_modeling.models.gaussian import GaussianConfig
 
 
@@ -247,6 +248,181 @@ class GaussianExperimentConfig:
 
     @classmethod
     def load(cls, path: str | Path) -> "GaussianExperimentConfig":
+        with Path(path).open("r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+        if not isinstance(raw, dict):
+            raise ValueError("experiment configuration root must be an object")
+        return cls.from_dict(raw)
+
+
+@dataclass(frozen=True)
+class AIOHMMSearchSpace:
+    """Validation-only state-count and deterministic-restart search."""
+
+    state_counts: tuple[int, ...] = (3, 4, 5)
+    initialization_seeds: tuple[int, ...] = (20260715, 20260716)
+    max_em_iterations: int = 25
+    min_em_iterations: int = 5
+    convergence_tolerance: float = 5e-4
+    ridge_penalty: float = 1e-3
+    covariance_shrinkage: float = 0.10
+    minimum_eigenvalue: float = 1e-5
+    minimum_effective_station_observations: float = 20.0
+    minimum_effective_pair_observations: float = 20.0
+    maximum_absolute_autoregression: float = 0.98
+    transition_l2_penalty: float = 1e-3
+    transition_learning_rate: float = 0.03
+    transition_adam_steps: int = 25
+    initial_probability_smoothing: float = 1e-2
+    minimum_state_occupancy_fraction: float = 0.005
+    input_dependent_transitions: bool = True
+
+    def validate(self) -> None:
+        if not self.state_counts or not self.initialization_seeds:
+            raise ValueError("AIOHMM search dimensions must not be empty")
+        if tuple(sorted(set(self.state_counts))) != self.state_counts:
+            raise ValueError("state_counts must be unique and increasing")
+        if len(set(self.initialization_seeds)) != len(self.initialization_seeds):
+            raise ValueError("initialization_seeds must not contain duplicates")
+        for state_count in self.state_counts:
+            if isinstance(state_count, bool) or not isinstance(state_count, int):
+                raise ValueError("state_counts must contain integers")
+        for seed in self.initialization_seeds:
+            if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+                raise ValueError(
+                    "initialization_seeds must contain non-negative integers"
+                )
+        self._candidate(self.state_counts[0], self.initialization_seeds[0]).validate()
+
+    def _candidate(self, state_count: int, seed: int) -> AIOHMMConfig:
+        return AIOHMMConfig(
+            n_states=state_count,
+            max_em_iterations=self.max_em_iterations,
+            min_em_iterations=self.min_em_iterations,
+            convergence_tolerance=self.convergence_tolerance,
+            ridge_penalty=self.ridge_penalty,
+            covariance_shrinkage=self.covariance_shrinkage,
+            minimum_eigenvalue=self.minimum_eigenvalue,
+            minimum_effective_station_observations=(
+                self.minimum_effective_station_observations
+            ),
+            minimum_effective_pair_observations=(
+                self.minimum_effective_pair_observations
+            ),
+            maximum_absolute_autoregression=(
+                self.maximum_absolute_autoregression
+            ),
+            transition_l2_penalty=self.transition_l2_penalty,
+            transition_learning_rate=self.transition_learning_rate,
+            transition_adam_steps=self.transition_adam_steps,
+            initial_probability_smoothing=self.initial_probability_smoothing,
+            minimum_state_occupancy_fraction=(
+                self.minimum_state_occupancy_fraction
+            ),
+            initialization_seed=seed,
+            input_dependent_transitions=self.input_dependent_transitions,
+        )
+
+    def candidates(self) -> tuple[AIOHMMConfig, ...]:
+        self.validate()
+        return tuple(
+            self._candidate(state_count, seed)
+            for state_count in self.state_counts
+            for seed in self.initialization_seeds
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "AIOHMMSearchSpace":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "AIOHMM search")
+        data = dict(raw)
+        for name in ("state_counts", "initialization_seeds"):
+            if name in data:
+                data[name] = tuple(data[name])
+        search = cls(**data)
+        search.validate()
+        return search
+
+
+@dataclass(frozen=True)
+class AIOHMMExperimentConfig:
+    """Complete reproducible configuration for an AIOHMM experiment."""
+
+    schema_version: str
+    experiment_name: str
+    dataset_root: str
+    scenarios: tuple[str, ...]
+    sample_count: int
+    sample_seed: int
+    evaluation: EvaluationConfig
+    aiohmm_search: AIOHMMSearchSpace
+    create_plots: bool = True
+
+    def validate(self) -> None:
+        if self.schema_version != EXPERIMENT_SCHEMA_VERSION:
+            raise ValueError(f"unsupported experiment schema {self.schema_version!r}")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", self.experiment_name):
+            raise ValueError("experiment_name must be a lowercase filesystem-safe slug")
+        dataset_path = Path(self.dataset_root)
+        if dataset_path.is_absolute() or ".." in dataset_path.parts:
+            raise ValueError("dataset_root must be a project-relative path")
+        if not self.scenarios or len(set(self.scenarios)) != len(self.scenarios):
+            raise ValueError("scenarios must be non-empty and unique")
+        unsupported = set(self.scenarios) - set(SUPPORTED_SYNTHETIC_SCENARIOS)
+        if unsupported:
+            raise ValueError(f"unsupported scenarios: {sorted(unsupported)}")
+        if (
+            isinstance(self.sample_count, bool)
+            or not isinstance(self.sample_count, int)
+            or self.sample_count < 8
+        ):
+            raise ValueError("sample_count must be an integer of at least eight")
+        if (
+            isinstance(self.sample_seed, bool)
+            or not isinstance(self.sample_seed, int)
+            or self.sample_seed < 0
+        ):
+            raise ValueError("sample_seed must be a non-negative integer")
+        if not isinstance(self.create_plots, bool):
+            raise ValueError("create_plots must be boolean")
+        self.evaluation.validate()
+        self.aiohmm_search.validate()
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return {
+            "schema_version": self.schema_version,
+            "experiment_name": self.experiment_name,
+            "dataset_root": self.dataset_root,
+            "scenarios": list(self.scenarios),
+            "sample_count": self.sample_count,
+            "sample_seed": self.sample_seed,
+            "evaluation": self.evaluation.to_dict(),
+            "aiohmm_search": self.aiohmm_search.to_dict(),
+            "create_plots": self.create_plots,
+        }
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "AIOHMMExperimentConfig":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "experiment configuration")
+        data = dict(raw)
+        if "scenarios" in data:
+            data["scenarios"] = tuple(data["scenarios"])
+        evaluation = data.get("evaluation", {})
+        search = data.get("aiohmm_search", {})
+        if not isinstance(evaluation, Mapping) or not isinstance(search, Mapping):
+            raise ValueError("evaluation and aiohmm_search must be objects")
+        data["evaluation"] = EvaluationConfig.from_dict(evaluation)
+        data["aiohmm_search"] = AIOHMMSearchSpace.from_dict(search)
+        config = cls(**data)
+        config.validate()
+        return config
+
+    @classmethod
+    def load(cls, path: str | Path) -> "AIOHMMExperimentConfig":
         with Path(path).open("r", encoding="utf-8") as handle:
             raw = json.load(handle)
         if not isinstance(raw, dict):

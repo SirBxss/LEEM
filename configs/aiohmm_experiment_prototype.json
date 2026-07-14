@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_name": "aiohmm_synthetic_prototype",
+  "dataset_root": "outputs/synthetic_prototype",
+  "scenarios": [
+    "conditional_gaussian",
+    "latent_autoregressive",
+    "nonlinear_heavy_tailed"
+  ],
+  "sample_count": 64,
+  "sample_seed": 20260715,
+  "evaluation": {
+    "interval_levels": [0.50, 0.90, 0.95],
+    "histogram_bin_count": 80,
+    "histogram_clip_quantiles": [0.001, 0.999],
+    "tail_probabilities": [0.95, 0.99],
+    "crps_chunk_size": 4096,
+    "max_distribution_values": 200000,
+    "max_energy_frames": 2000,
+    "energy_pair_count": 1024,
+    "max_dependence_frames": 20000,
+    "max_dependence_samples": 16,
+    "metric_seed": 20260714
+  },
+  "aiohmm_search": {
+    "state_counts": [3, 4, 5],
+    "initialization_seeds": [20260715, 20260716],
+    "max_em_iterations": 25,
+    "min_em_iterations": 5,
+    "convergence_tolerance": 0.0005,
+    "ridge_penalty": 0.001,
+    "covariance_shrinkage": 0.10,
+    "minimum_eigenvalue": 0.00001,
+    "minimum_effective_station_observations": 20.0,
+    "minimum_effective_pair_observations": 20.0,
+    "maximum_absolute_autoregression": 0.98,
+    "transition_l2_penalty": 0.001,
+    "transition_learning_rate": 0.03,
+    "transition_adam_steps": 25,
+    "initial_probability_smoothing": 0.01,
+    "minimum_state_occupancy_fraction": 0.005,
+    "input_dependent_transitions": true
+  },
+  "create_plots": true
+}
