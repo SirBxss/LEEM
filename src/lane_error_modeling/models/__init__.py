@@ -6,11 +6,13 @@ from .base import (
     ProbabilisticSequenceModel,
     SampleResult,
 )
+from .gaussian import ConditionalMultivariateGaussian, GaussianConfig
 
 __all__ = [
     "FitReport",
+    "ConditionalMultivariateGaussian",
+    "GaussianConfig",
     "ModelCapabilities",
     "ProbabilisticSequenceModel",
     "SampleResult",
 ]
-

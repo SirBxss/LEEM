@@ -195,10 +195,9 @@ Standardization is common, but final evaluation is performed in physical units. 
 ## 11. Known limitations and next decisions
 
 - Per-station standardization does not remove spatial dependence; covariance must still be modelled.
-- The current target mask allows different visible ranges. The Gaussian full covariance therefore requires a documented missing-covariance estimator rather than complete-case deletion.
+- The Gaussian baseline now uses pairwise observed residual covariance, diagonal shrinkage, and positive-definite projection instead of complete-case deletion.
 - Batching is NumPy-based. RC-GAN will later receive a thin PyTorch adapter without changing the stored data contract.
 - The six-feature contract is provisional until BMW signal mapping and real-data feature analysis.
 - Standardization parameters will change when the final training split changes; all models must then be retrained.
 
-The next implementation is the conditional multivariate Gaussian. Its mean will be estimated with masked station-wise regression, while residual spatial covariance will require pairwise observed estimates, regularization, and positive-definite projection.
-
+The next model implementation is AIOHMM. It must preserve the same standardized sequence contract while adding autoregressive emissions and input-dependent latent-state transitions.
