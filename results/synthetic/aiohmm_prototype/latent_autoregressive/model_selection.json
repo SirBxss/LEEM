@@ -1,0 +1,250 @@
+{
+  "candidates": [
+    {
+      "candidate_index": 0,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260715,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 3,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -873928.0283383541,
+        "em_converged": 1.0,
+        "em_iteration_count": 5.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8828735636454832,
+        "minimum_state_occupancy_fraction": 0.21895626537437518,
+        "train_nll_per_observed_value_standardized": 0.1714359528717012,
+        "validation_nll_per_observed_value_standardized": 0.1543472966056642
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 3 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.1543472966056642,
+      "status": "passed"
+    },
+    {
+      "candidate_index": 1,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260716,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 3,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -873945.7698238838,
+        "em_converged": 1.0,
+        "em_iteration_count": 5.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8828723146198957,
+        "minimum_state_occupancy_fraction": 0.21895711159094886,
+        "train_nll_per_observed_value_standardized": 0.17143943316799395,
+        "validation_nll_per_observed_value_standardized": 0.15434988642270486
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 3 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.15434988642270486,
+      "status": "passed"
+    },
+    {
+      "candidate_index": 2,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260715,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 4,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -874684.7280919838,
+        "em_converged": 1.0,
+        "em_iteration_count": 5.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8853737865988974,
+        "minimum_state_occupancy_fraction": 0.17498934575456368,
+        "train_nll_per_observed_value_standardized": 0.17158439249040525,
+        "validation_nll_per_observed_value_standardized": 0.154497843976907
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 2 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.154497843976907,
+      "status": "passed"
+    },
+    {
+      "candidate_index": 3,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260716,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 4,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -874581.1783025123,
+        "em_converged": 1.0,
+        "em_iteration_count": 5.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8853766491941328,
+        "minimum_state_occupancy_fraction": 0.17604348760641939,
+        "train_nll_per_observed_value_standardized": 0.17156407942542495,
+        "validation_nll_per_observed_value_standardized": 0.15447802408267436
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 2 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.15447802408267436,
+      "status": "passed"
+    },
+    {
+      "candidate_index": 4,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260715,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 5,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -870689.3155810097,
+        "em_converged": 1.0,
+        "em_iteration_count": 8.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8905277670321595,
+        "minimum_state_occupancy_fraction": 0.025371491555236617,
+        "train_nll_per_observed_value_standardized": 0.17080062388621398,
+        "validation_nll_per_observed_value_standardized": 0.1537802206662568
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 4 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.1537802206662568,
+      "status": "passed"
+    },
+    {
+      "candidate_index": 5,
+      "config": {
+        "convergence_tolerance": 0.0005,
+        "covariance_shrinkage": 0.1,
+        "initial_probability_smoothing": 0.01,
+        "initialization_seed": 20260716,
+        "input_dependent_transitions": true,
+        "max_em_iterations": 25,
+        "maximum_absolute_autoregression": 0.98,
+        "min_em_iterations": 5,
+        "minimum_effective_pair_observations": 20.0,
+        "minimum_effective_station_observations": 20.0,
+        "minimum_eigenvalue": 1e-05,
+        "minimum_state_occupancy_fraction": 0.005,
+        "n_states": 5,
+        "ridge_penalty": 0.001,
+        "transition_adam_steps": 25,
+        "transition_l2_penalty": 0.001,
+        "transition_learning_rate": 0.03
+      },
+      "fit_metrics": {
+        "em_best_train_log_probability": -870694.9288986563,
+        "em_converged": 1.0,
+        "em_iteration_count": 8.0,
+        "maximum_absolute_autoregressive_coefficient": 0.8905198196066226,
+        "minimum_state_occupancy_fraction": 0.025383483398243843,
+        "train_nll_per_observed_value_standardized": 0.17080172503462474,
+        "validation_nll_per_observed_value_standardized": 0.15377729854164293
+      },
+      "fit_warnings": [
+        "training log likelihood decreased on 4 EM iterations; the best observed parameter state was retained"
+      ],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.15377729854164293,
+      "status": "passed"
+    }
+  ],
+  "lower_is_better": true,
+  "selected_candidate_index": 5,
+  "selected_config": {
+    "convergence_tolerance": 0.0005,
+    "covariance_shrinkage": 0.1,
+    "initial_probability_smoothing": 0.01,
+    "initialization_seed": 20260716,
+    "input_dependent_transitions": true,
+    "max_em_iterations": 25,
+    "maximum_absolute_autoregression": 0.98,
+    "min_em_iterations": 5,
+    "minimum_effective_pair_observations": 20.0,
+    "minimum_effective_station_observations": 20.0,
+    "minimum_eigenvalue": 1e-05,
+    "minimum_state_occupancy_fraction": 0.005,
+    "n_states": 5,
+    "ridge_penalty": 0.001,
+    "transition_adam_steps": 25,
+    "transition_l2_penalty": 0.001,
+    "transition_learning_rate": 0.03
+  },
+  "selection_metric": "validation_nll_per_observed_value_standardized",
+  "selection_split": "validation",
+  "test_data_accessed_during_selection": false
+}

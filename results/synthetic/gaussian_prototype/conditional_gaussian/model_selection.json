@@ -1,0 +1,456 @@
+{
+  "candidates": [
+    {
+      "candidate_index": 0,
+      "config": {
+        "covariance_shrinkage": 0.0,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 79.58633905940374,
+        "covariance_min_eigenvalue": 0.09426170813883078,
+        "train_mean_rmse_standardized": 0.9755885630649871,
+        "train_nll_per_observed_value_standardized": 0.8666786082934888,
+        "validation_mean_rmse_standardized": 0.9760402265660277,
+        "validation_nll_per_observed_value_standardized": 0.866041167869809
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.866041167869809
+    },
+    {
+      "candidate_index": 1,
+      "config": {
+        "covariance_shrinkage": 0.05,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 52.62207392612799,
+        "covariance_min_eigenvalue": 0.1363366650920737,
+        "train_mean_rmse_standardized": 0.9755885630649871,
+        "train_nll_per_observed_value_standardized": 0.8777904759033568,
+        "validation_mean_rmse_standardized": 0.9760402265660277,
+        "validation_nll_per_observed_value_standardized": 0.8772908606303368
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8772908606303368
+    },
+    {
+      "candidate_index": 2,
+      "config": {
+        "covariance_shrinkage": 0.1,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 38.389910611297104,
+        "covariance_min_eigenvalue": 0.17834614427972467,
+        "train_mean_rmse_standardized": 0.9755885630649871,
+        "train_nll_per_observed_value_standardized": 0.8989970218425335,
+        "validation_mean_rmse_standardized": 0.9760402265660277,
+        "validation_nll_per_observed_value_standardized": 0.8985868754779008
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8985868754779008
+    },
+    {
+      "candidate_index": 3,
+      "config": {
+        "covariance_shrinkage": 0.2,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 23.61031879493968,
+        "covariance_min_eigenvalue": 0.2622346615604738,
+        "train_mean_rmse_standardized": 0.9755885630649871,
+        "train_nll_per_observed_value_standardized": 0.9470690646155288,
+        "validation_mean_rmse_standardized": 0.9760402265660277,
+        "validation_nll_per_observed_value_standardized": 0.9467749390348253
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.9467749390348253
+    },
+    {
+      "candidate_index": 4,
+      "config": {
+        "covariance_shrinkage": 0.4,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 11.359392530570021,
+        "covariance_min_eigenvalue": 0.42968517762079356,
+        "train_mean_rmse_standardized": 0.9755885630649871,
+        "train_nll_per_observed_value_standardized": 1.0378748653918726,
+        "validation_mean_rmse_standardized": 0.9760402265660277,
+        "validation_nll_per_observed_value_standardized": 1.0377189429156468
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 1.0377189429156468
+    },
+    {
+      "candidate_index": 5,
+      "config": {
+        "covariance_shrinkage": 0.0,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 79.58633905940599,
+        "covariance_min_eigenvalue": 0.09426170813882907,
+        "train_mean_rmse_standardized": 0.9755885630645806,
+        "train_nll_per_observed_value_standardized": 0.8666786082934849,
+        "validation_mean_rmse_standardized": 0.9760402265648325,
+        "validation_nll_per_observed_value_standardized": 0.8660411678698776
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8660411678698776
+    },
+    {
+      "candidate_index": 6,
+      "config": {
+        "covariance_shrinkage": 0.05,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 52.62207392612851,
+        "covariance_min_eigenvalue": 0.1363366650920738,
+        "train_mean_rmse_standardized": 0.9755885630645806,
+        "train_nll_per_observed_value_standardized": 0.8777904759033123,
+        "validation_mean_rmse_standardized": 0.9760402265648325,
+        "validation_nll_per_observed_value_standardized": 0.8772908606300748
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8772908606300748
+    },
+    {
+      "candidate_index": 7,
+      "config": {
+        "covariance_shrinkage": 0.1,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 38.38991061129728,
+        "covariance_min_eigenvalue": 0.1783461442797257,
+        "train_mean_rmse_standardized": 0.9755885630645806,
+        "train_nll_per_observed_value_standardized": 0.8989970218424979,
+        "validation_mean_rmse_standardized": 0.9760402265648325,
+        "validation_nll_per_observed_value_standardized": 0.898586875477539
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.898586875477539
+    },
+    {
+      "candidate_index": 8,
+      "config": {
+        "covariance_shrinkage": 0.2,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 23.61031879493974,
+        "covariance_min_eigenvalue": 0.2622346615604759,
+        "train_mean_rmse_standardized": 0.9755885630645806,
+        "train_nll_per_observed_value_standardized": 0.9470690646155357,
+        "validation_mean_rmse_standardized": 0.9760402265648325,
+        "validation_nll_per_observed_value_standardized": 0.9467749390344652
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.9467749390344652
+    },
+    {
+      "candidate_index": 9,
+      "config": {
+        "covariance_shrinkage": 0.4,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.0001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 11.359392530570112,
+        "covariance_min_eigenvalue": 0.42968517762079433,
+        "train_mean_rmse_standardized": 0.9755885630645806,
+        "train_nll_per_observed_value_standardized": 1.037874865391948,
+        "validation_mean_rmse_standardized": 0.9760402265648325,
+        "validation_nll_per_observed_value_standardized": 1.0377189429154408
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 1.0377189429154408
+    },
+    {
+      "candidate_index": 10,
+      "config": {
+        "covariance_shrinkage": 0.0,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 79.58633905942096,
+        "covariance_min_eigenvalue": 0.0942617081388204,
+        "train_mean_rmse_standardized": 0.9755885630647728,
+        "train_nll_per_observed_value_standardized": 0.8666786082931495,
+        "validation_mean_rmse_standardized": 0.9760402265707686,
+        "validation_nll_per_observed_value_standardized": 0.8660411678847709
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8660411678847709
+    },
+    {
+      "candidate_index": 11,
+      "config": {
+        "covariance_shrinkage": 0.05,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 52.622073926131215,
+        "covariance_min_eigenvalue": 0.13633666509207984,
+        "train_mean_rmse_standardized": 0.9755885630647728,
+        "train_nll_per_observed_value_standardized": 0.8777904759028596,
+        "validation_mean_rmse_standardized": 0.9760402265707686,
+        "validation_nll_per_observed_value_standardized": 0.8772908606418045
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8772908606418045
+    },
+    {
+      "candidate_index": 12,
+      "config": {
+        "covariance_shrinkage": 0.1,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 38.38991061129738,
+        "covariance_min_eigenvalue": 0.17834614427974207,
+        "train_mean_rmse_standardized": 0.9755885630647728,
+        "train_nll_per_observed_value_standardized": 0.898997021841963,
+        "validation_mean_rmse_standardized": 0.9760402265707686,
+        "validation_nll_per_observed_value_standardized": 0.8985868754874548
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8985868754874548
+    },
+    {
+      "candidate_index": 13,
+      "config": {
+        "covariance_shrinkage": 0.2,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 23.61031879493981,
+        "covariance_min_eigenvalue": 0.2622346615604993,
+        "train_mean_rmse_standardized": 0.9755885630647728,
+        "train_nll_per_observed_value_standardized": 0.9470690646149102,
+        "validation_mean_rmse_standardized": 0.9760402265707686,
+        "validation_nll_per_observed_value_standardized": 0.9467749390423291
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.9467749390423291
+    },
+    {
+      "candidate_index": 14,
+      "config": {
+        "covariance_shrinkage": 0.4,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.001
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 11.359392530570782,
+        "covariance_min_eigenvalue": 0.4296851776208061,
+        "train_mean_rmse_standardized": 0.9755885630647728,
+        "train_nll_per_observed_value_standardized": 1.0378748653912704,
+        "validation_mean_rmse_standardized": 0.9760402265707686,
+        "validation_nll_per_observed_value_standardized": 1.0377189429214408
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 1.0377189429214408
+    },
+    {
+      "candidate_index": 15,
+      "config": {
+        "covariance_shrinkage": 0.0,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.01
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 79.58633905957586,
+        "covariance_min_eigenvalue": 0.09426170813872788,
+        "train_mean_rmse_standardized": 0.9755885630650152,
+        "train_nll_per_observed_value_standardized": 0.8666786082876876,
+        "validation_mean_rmse_standardized": 0.9760402265696936,
+        "validation_nll_per_observed_value_standardized": 0.8660411678708263
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8660411678708263
+    },
+    {
+      "candidate_index": 16,
+      "config": {
+        "covariance_shrinkage": 0.05,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.01
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 52.622073926160105,
+        "covariance_min_eigenvalue": 0.13633666509213524,
+        "train_mean_rmse_standardized": 0.9755885630650152,
+        "train_nll_per_observed_value_standardized": 0.8777904758986194,
+        "validation_mean_rmse_standardized": 0.9760402265696936,
+        "validation_nll_per_observed_value_standardized": 0.8772908606290748
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8772908606290748
+    },
+    {
+      "candidate_index": 17,
+      "config": {
+        "covariance_shrinkage": 0.1,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.01
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 38.38991061129997,
+        "covariance_min_eigenvalue": 0.1783461442798988,
+        "train_mean_rmse_standardized": 0.9755885630650152,
+        "train_nll_per_observed_value_standardized": 0.8989970218384982,
+        "validation_mean_rmse_standardized": 0.9760402265696936,
+        "validation_nll_per_observed_value_standardized": 0.8985868754758853
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.8985868754758853
+    },
+    {
+      "candidate_index": 18,
+      "config": {
+        "covariance_shrinkage": 0.2,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.01
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 23.610318794940834,
+        "covariance_min_eigenvalue": 0.2622346615607303,
+        "train_mean_rmse_standardized": 0.9755885630650152,
+        "train_nll_per_observed_value_standardized": 0.9470690646123902,
+        "validation_mean_rmse_standardized": 0.9760402265696936,
+        "validation_nll_per_observed_value_standardized": 0.9467749390326211
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 0.9467749390326211
+    },
+    {
+      "candidate_index": 19,
+      "config": {
+        "covariance_shrinkage": 0.4,
+        "minimum_eigenvalue": 1e-06,
+        "minimum_pair_observations": 32,
+        "minimum_station_observations": 32,
+        "ridge_penalty": 0.01
+      },
+      "fit_metrics": {
+        "covariance_clipped_eigenvalue_count": 0.0,
+        "covariance_condition_number": 11.359392530577631,
+        "covariance_min_eigenvalue": 0.42968517762091757,
+        "train_mean_rmse_standardized": 0.9755885630650152,
+        "train_nll_per_observed_value_standardized": 1.0378748653897314,
+        "validation_mean_rmse_standardized": 0.9760402265696936,
+        "validation_nll_per_observed_value_standardized": 1.0377189429142482
+      },
+      "fit_warnings": [],
+      "selection_metric": "validation_nll_per_observed_value_standardized",
+      "selection_metric_value": 1.0377189429142482
+    }
+  ],
+  "lower_is_better": true,
+  "selected_candidate_index": 0,
+  "selected_config": {
+    "covariance_shrinkage": 0.0,
+    "minimum_eigenvalue": 1e-06,
+    "minimum_pair_observations": 32,
+    "minimum_station_observations": 32,
+    "ridge_penalty": 0.0
+  },
+  "selection_metric": "validation_nll_per_observed_value_standardized",
+  "selection_split": "validation",
+  "test_data_accessed_during_selection": false
+}
