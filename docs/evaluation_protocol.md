@@ -239,7 +239,19 @@ python scripts/run_aiohmm_experiment.py `
   --output outputs/experiments/aiohmm_prototype
 ```
 
-Outputs are ignored by Git. Do not commit generated archives, models, figures, result JSON, BMW signal names, or BMW-derived measurements to the public repository.
+Run the RC-GAN prototype only after its PyTorch-enabled test suite and smoke
+experiment pass:
+
+```powershell
+python scripts/run_rcgan_experiment.py `
+  --config configs/rcgan_experiment_prototype.json `
+  --output outputs/experiments/rcgan_prototype
+```
+
+The general `outputs/` tree is ignored by Git. Only deliberately curated,
+non-confidential synthetic artifacts under `results/synthetic/` may be committed.
+Never commit BMW signal names, internal metadata, or BMW-derived measurements to
+the public repository.
 
 ## 16. Gaussian Phase 5 exit criteria
 
@@ -270,7 +282,17 @@ Phase 6 is complete when:
 9. all prior tests remain passing;
 10. no synthetic latent state or result is presented as BMW sensor behaviour.
 
-After this gate, RC-GAN may be implemented without changing the frozen common
-data and evaluation contracts. Any metric or protocol revision discovered during
-RC-GAN development must be applied retrospectively to Gaussian and AIOHMM before
-final comparison.
+## 18. RC-GAN Phase 7 protocol
+
+RC-GAN initialization restarts are selected using validation physical-unit,
+dimension-normalized Energy Score because the implicit model has no tractable
+NLL. Test archives remain unopened until the restart is frozen. The final
+evaluator and frozen common metric definitions are unchanged across all three
+models.
+
+Phase 7 implementation is complete when the paper-based separate noise/context
+architecture, mask-aware variable-length training, deterministic sampling, safe
+persistence, validation-only selection, held-out runner, and automated tests all
+pass. The longer prototype run is a subsequent scientific gate. Any genuinely
+necessary future common metric or protocol revision must be applied
+retrospectively to Gaussian, AIOHMM, and RC-GAN before final comparison.

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_name": "rcgan_synthetic_prototype",
+  "dataset_root": "outputs/synthetic_prototype",
+  "scenarios": [
+    "conditional_gaussian",
+    "latent_autoregressive",
+    "nonlinear_heavy_tailed"
+  ],
+  "selection_sample_count": 16,
+  "selection_sample_seed": 20260719,
+  "sample_count": 64,
+  "sample_seed": 20260720,
+  "evaluation": {
+    "interval_levels": [0.50, 0.90, 0.95],
+    "histogram_bin_count": 80,
+    "histogram_clip_quantiles": [0.001, 0.999],
+    "tail_probabilities": [0.95, 0.99],
+    "crps_chunk_size": 4096,
+    "max_distribution_values": 200000,
+    "max_energy_frames": 2000,
+    "energy_pair_count": 1024,
+    "max_dependence_frames": 20000,
+    "max_dependence_samples": 16,
+    "metric_seed": 20260714
+  },
+  "rcgan_search": {
+    "initialization_seeds": [20260717, 20260718],
+    "latent_size": 32,
+    "noise_hidden_size": 64,
+    "context_hidden_size": 64,
+    "context_layers": 2,
+    "discriminator_hidden_size": 64,
+    "discriminator_layers": 2,
+    "dense_hidden_size": 64,
+    "discriminator_dropout": 0.05,
+    "leaky_relu_slope": 0.2,
+    "epochs": 4,
+    "batch_size": 4,
+    "learning_rate": 0.00001,
+    "adam_beta1": 0.5,
+    "adam_beta2": 0.999,
+    "gradient_clip_norm": 1.0,
+    "discriminator_steps": 1,
+    "generator_steps": 1,
+    "sample_batch_size": 16,
+    "device": "cpu"
+  },
+  "create_plots": true
+}

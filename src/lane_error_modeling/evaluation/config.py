@@ -1,4 +1,4 @@
-"""Strict schemas for common evaluation, Gaussian, and AIOHMM experiments."""
+"""Strict schemas for common evaluation and all three thesis models."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from typing import Any, Mapping
 
 from lane_error_modeling.models.aiohmm import AIOHMMConfig
 from lane_error_modeling.models.gaussian import GaussianConfig
+from lane_error_modeling.models.rcgan.config import RCGANConfig
 
 
 EXPERIMENT_SCHEMA_VERSION = "1.0.0"
@@ -423,6 +424,150 @@ class AIOHMMExperimentConfig:
 
     @classmethod
     def load(cls, path: str | Path) -> "AIOHMMExperimentConfig":
+        with Path(path).open("r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+        if not isinstance(raw, dict):
+            raise ValueError("experiment configuration root must be an object")
+        return cls.from_dict(raw)
+
+
+@dataclass(frozen=True)
+class RCGANSearchSpace:
+    """Fixed paper architecture with deterministic initialization restarts."""
+
+    initialization_seeds: tuple[int, ...] = (20260717, 20260718)
+    latent_size: int = 32
+    noise_hidden_size: int = 64
+    context_hidden_size: int = 64
+    context_layers: int = 2
+    discriminator_hidden_size: int = 64
+    discriminator_layers: int = 2
+    dense_hidden_size: int = 64
+    discriminator_dropout: float = 0.05
+    leaky_relu_slope: float = 0.2
+    epochs: int = 4
+    batch_size: int = 1
+    learning_rate: float = 1e-5
+    adam_beta1: float = 0.5
+    adam_beta2: float = 0.999
+    gradient_clip_norm: float = 1.0
+    discriminator_steps: int = 1
+    generator_steps: int = 1
+    sample_batch_size: int = 16
+    device: str = "cpu"
+
+    def validate(self) -> None:
+        if not self.initialization_seeds:
+            raise ValueError("initialization_seeds must not be empty")
+        if len(set(self.initialization_seeds)) != len(self.initialization_seeds):
+            raise ValueError("initialization_seeds must not contain duplicates")
+        for seed in self.initialization_seeds:
+            if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+                raise ValueError(
+                    "initialization_seeds must contain non-negative integers"
+                )
+        self._candidate(self.initialization_seeds[0]).validate()
+
+    def _candidate(self, seed: int) -> RCGANConfig:
+        values = asdict(self)
+        values.pop("initialization_seeds")
+        return RCGANConfig(initialization_seed=seed, **values)
+
+    def candidates(self) -> tuple[RCGANConfig, ...]:
+        self.validate()
+        return tuple(self._candidate(seed) for seed in self.initialization_seeds)
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "RCGANSearchSpace":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "RC-GAN search")
+        data = dict(raw)
+        if "initialization_seeds" in data:
+            data["initialization_seeds"] = tuple(data["initialization_seeds"])
+        search = cls(**data)
+        search.validate()
+        return search
+
+
+@dataclass(frozen=True)
+class RCGANExperimentConfig:
+    """Leakage-safe validation selection and held-out RC-GAN evaluation."""
+
+    schema_version: str
+    experiment_name: str
+    dataset_root: str
+    scenarios: tuple[str, ...]
+    selection_sample_count: int
+    selection_sample_seed: int
+    sample_count: int
+    sample_seed: int
+    evaluation: EvaluationConfig
+    rcgan_search: RCGANSearchSpace
+    create_plots: bool = True
+
+    def validate(self) -> None:
+        if self.schema_version != EXPERIMENT_SCHEMA_VERSION:
+            raise ValueError(f"unsupported experiment schema {self.schema_version!r}")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", self.experiment_name):
+            raise ValueError("experiment_name must be a lowercase filesystem-safe slug")
+        dataset_path = Path(self.dataset_root)
+        if dataset_path.is_absolute() or ".." in dataset_path.parts:
+            raise ValueError("dataset_root must be a project-relative path")
+        if not self.scenarios or len(set(self.scenarios)) != len(self.scenarios):
+            raise ValueError("scenarios must be non-empty and unique")
+        unsupported = set(self.scenarios) - set(SUPPORTED_SYNTHETIC_SCENARIOS)
+        if unsupported:
+            raise ValueError(f"unsupported scenarios: {sorted(unsupported)}")
+        for name in ("selection_sample_count", "sample_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 8:
+                raise ValueError(f"{name} must be an integer of at least eight")
+        for name in ("selection_sample_seed", "sample_seed"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
+        if not isinstance(self.create_plots, bool):
+            raise ValueError("create_plots must be boolean")
+        self.evaluation.validate()
+        self.rcgan_search.validate()
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return {
+            "schema_version": self.schema_version,
+            "experiment_name": self.experiment_name,
+            "dataset_root": self.dataset_root,
+            "scenarios": list(self.scenarios),
+            "selection_sample_count": self.selection_sample_count,
+            "selection_sample_seed": self.selection_sample_seed,
+            "sample_count": self.sample_count,
+            "sample_seed": self.sample_seed,
+            "evaluation": self.evaluation.to_dict(),
+            "rcgan_search": self.rcgan_search.to_dict(),
+            "create_plots": self.create_plots,
+        }
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "RCGANExperimentConfig":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "experiment configuration")
+        data = dict(raw)
+        if "scenarios" in data:
+            data["scenarios"] = tuple(data["scenarios"])
+        evaluation = data.get("evaluation", {})
+        search = data.get("rcgan_search", {})
+        if not isinstance(evaluation, Mapping) or not isinstance(search, Mapping):
+            raise ValueError("evaluation and rcgan_search must be objects")
+        data["evaluation"] = EvaluationConfig.from_dict(evaluation)
+        data["rcgan_search"] = RCGANSearchSpace.from_dict(search)
+        config = cls(**data)
+        config.validate()
+        return config
+
+    @classmethod
+    def load(cls, path: str | Path) -> "RCGANExperimentConfig":
         with Path(path).open("r", encoding="utf-8") as handle:
             raw = json.load(handle)
         if not isinstance(raw, dict):

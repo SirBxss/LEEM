@@ -6,6 +6,8 @@ from .config import (
     EvaluationConfig,
     GaussianExperimentConfig,
     GaussianSearchSpace,
+    RCGANExperimentConfig,
+    RCGANSearchSpace,
 )
 from .reference import EvaluationReference
 from .result import EvaluationResult
@@ -34,8 +36,19 @@ __all__ = [
     "linear_quantile_uniform_reference_coverage",
     "run_gaussian_experiment",
     "run_aiohmm_experiment",
+    "run_rcgan_experiment",
     "save_comparison_report",
     "upgrade_evaluation_tree",
     "GaussianExperimentConfig",
     "GaussianSearchSpace",
+    "RCGANExperimentConfig",
+    "RCGANSearchSpace",
 ]
+
+
+def __getattr__(name: str):
+    if name != "run_rcgan_experiment":
+        raise AttributeError(name)
+    from .rcgan_experiment import run_rcgan_experiment
+
+    return run_rcgan_experiment
