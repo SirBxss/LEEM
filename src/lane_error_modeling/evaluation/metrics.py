@@ -8,6 +8,7 @@ from numpy.typing import ArrayLike, NDArray
 from lane_error_modeling.data.preprocessing import SequenceDataset
 
 from .config import EvaluationConfig
+from .finite_sample import finite_ensemble_interval_metadata
 from .reference import EvaluationReference
 from .result import EvaluationResult
 
@@ -371,11 +372,12 @@ def _point_interval_and_crps_metrics(
     total_count = int(np.sum(station_counts))
     for level in config.interval_levels:
         key = f"{level:.2f}"
+        empirical_coverage = float(
+            np.sum(interval_coverage_sums[level]) / total_count
+        )
         interval_metrics[key] = {
             "nominal_coverage": level,
-            "global_empirical_coverage": float(
-                np.sum(interval_coverage_sums[level]) / total_count
-            ),
+            "global_empirical_coverage": empirical_coverage,
             "global_mean_width_m": float(
                 np.sum(interval_width_sums[level]) / total_count
             ),
@@ -384,6 +386,11 @@ def _point_interval_and_crps_metrics(
             ),
             "station_mean_width_m": _optional_station_values(
                 interval_width_sums[level], station_counts
+            ),
+            "finite_ensemble": finite_ensemble_interval_metadata(
+                sample_count=sample_count,
+                nominal_coverage=level,
+                empirical_coverage=empirical_coverage,
             ),
         }
     return global_metrics, station_metrics, interval_metrics, predictive_mean
@@ -591,6 +598,10 @@ def evaluate_probabilistic_samples(
             "dependence_frame_count": dependence_frame_count,
             "dependence_sample_count": dependence_sample_count,
             "jensen_shannon_logarithm_base": "2",
+            "interval_quantile_method": "linear",
+            "interval_finite_sample_reference": (
+                "uniform_order_statistic_expectation"
+            ),
         },
     )
     result.validate()

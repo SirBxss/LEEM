@@ -22,6 +22,10 @@ venv/
 *.ckpt
 *.parquet
 
+# Small fitted models from explicitly curated synthetic result directories.
+!/results/synthetic/**/gaussian_model.npz
+!/results/synthetic/**/aiohmm_model.npz
+
 # Confidential/local data
 /bmw_data/
 /private_data/

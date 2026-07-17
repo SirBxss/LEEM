@@ -10,7 +10,7 @@ from typing import Any, Mapping
 from .io import atomic_write_json
 
 
-EVALUATION_RESULT_SCHEMA_VERSION = "1.0.0"
+EVALUATION_RESULT_SCHEMA_VERSION = "1.1.0"
 
 
 def _validate_finite_json(value: Any, path: str = "result") -> None:
@@ -47,7 +47,7 @@ class EvaluationResult:
     station_metrics: dict[str, list[float | int | None]]
     interval_metrics: dict[str, dict[str, object]]
     dependence_diagnostics: dict[str, object]
-    approximation_metadata: dict[str, int | str]
+    approximation_metadata: dict[str, int | float | bool | str]
 
     def validate(self) -> None:
         if not self.model_name or not self.scenario:
@@ -75,6 +75,7 @@ class EvaluationResult:
             "global_mean_width_m",
             "station_empirical_coverage",
             "station_mean_width_m",
+            "finite_ensemble",
         }
         if not self.interval_metrics:
             raise ValueError("interval_metrics must not be empty")
@@ -93,6 +94,28 @@ class EvaluationResult:
                     raise ValueError(
                         f"interval {level!r} field {name!r} has an invalid length"
                     )
+            finite_ensemble = details["finite_ensemble"]
+            if not isinstance(finite_ensemble, Mapping):
+                raise ValueError(
+                    f"interval {level!r} finite_ensemble must be an object"
+                )
+            required_finite_sample_fields = {
+                "ensemble_sample_count",
+                "quantile_method",
+                "linear_uniform_reference_coverage",
+                "empirical_minus_linear_uniform_reference",
+                "central_rank_lower_1_based",
+                "central_rank_upper_1_based",
+                "central_rank_reference_coverage",
+                "central_rank_meets_nominal_coverage",
+                "interpretation",
+            }
+            missing_finite = required_finite_sample_fields - set(finite_ensemble)
+            if missing_finite:
+                raise ValueError(
+                    f"interval {level!r} finite_ensemble is missing fields: "
+                    f"{sorted(missing_finite)}"
+                )
         _validate_finite_json(self.to_dict(), "evaluation_result")
 
     def to_dict(self) -> dict[str, object]:

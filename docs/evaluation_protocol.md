@@ -76,6 +76,15 @@ The raw score and a dimension-normalized version, divided by the square root of 
 
 For bounded runtime, a deterministic subset of frames is selected using the metric seed. A deterministic subset of generated samples is then used for an exact empirical pair calculation within each selected frame. The effective frame and sample counts are stored in `approximation_metadata`.
 
+## Finite predictive ensembles
+
+Central interval coverage depends on the number of generated draws as well as
+model calibration. The evaluator records the linear-quantile uniform-reference
+coverage and a central order-statistic reference beside every nominal level.
+These values are finite-ensemble diagnostics, not replacements for the nominal
+coverage. See [Phase 6.1 evaluation reporting](phase6_1_evaluation_reporting.md)
+for the derivation, the 64-draw values, and the publication rule.
+
 ## 7. Prediction-interval calibration
 
 For nominal levels 50%, 90%, and 95%, the evaluator reports:

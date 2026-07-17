@@ -8,31 +8,33 @@ This package implements the data and modelling pipeline for the lane-estimation 
 
 The synthetic data are controlled implementation and capability tests. They are **not evidence of real BMW sensor behaviour** and must not be used for final model ranking or real-world claims.
 
-The package also contains the common preprocessing/model interfaces and the implemented conditional multivariate Gaussian baseline used by synthetic and later BMW-derived datasets. The main source layout is:
+The package also contains the common preprocessing/model interfaces, the conditional multivariate Gaussian baseline, and the AIOHMM temporal model used by synthetic and later BMW-derived datasets. The main source layout is:
 
 ```text
 src/lane_error_modeling/
 ├── data/
 │   ├── synthetic/
 │   └── preprocessing/
+├── evaluation/
 └── models/
+    ├── aiohmm/
     ├── base.py
     └── gaussian/
 ```
 
 ## Data contract
 
-At time \(t\), the condition vector is
+At time $t$, the condition vector is
 
-\[
+$$
 X_t=[v_t,\bar\kappa_t,\Delta\kappa_t,w_{\mathrm{lane},t},q_{\mathrm{mark},t},q_{\mathrm{env},t}]^\mathsf T.
-\]
+$$
 
 The output is a signed lateral error profile at 21 look-ahead stations:
 
-\[
+$$
 Y_t=[e_d(t,0),e_d(t,5),\ldots,e_d(t,100)]^\mathsf T.
-\]
+$$
 
 Errors are measured along the reference-path normal. Arrays are padded only at serialization/batching time, and `valid_mask` distinguishes valid values from unavailable look-ahead stations and padding.
 
@@ -44,7 +46,11 @@ From this directory:
 python -m pip install -e .
 ```
 
-The only runtime dependency is NumPy. The test suite uses the Python standard library.
+The core runtime dependency is NumPy. Install the optional evaluation plots with:
+
+```bash
+python -m pip install -e ".[evaluation]"
+```
 
 ## Generate the verified smoke dataset
 
@@ -94,18 +100,18 @@ Each `.npz` contains:
 
 | Array | Shape | Description |
 |---|---:|---|
-| `sequence_ids` | \([B]\) | Stable scenario/split/index identifiers |
-| `sequence_seeds` | \([B]\) | Independently reproducible sequence seeds |
-| `lengths` | \([B]\) | Original lengths before padding |
-| `conditions` | \([B,T,6]\) | Six physical/scene conditions |
-| `errors` | \([B,T,21]\) | Signed lateral errors in metres |
-| `valid_mask` | \([B,T,21]\) | Valid target values |
-| `conditional_mean` | \([B,T,21]\) | Oracle DGP mean, unavailable for real data |
-| `latent_state` | \([B,T]\) | Oracle regime/burst state, unavailable for real data |
-| `reference_curvature` | \([B,T,21]\) | Reference curvature profiles |
-| `reference_heading` | \([B,T,21]\) | Integrated reference headings |
-| `reference_xy` | \([B,T,21,2]\) | Reference paths in ego-local coordinates |
-| `s_grid_m` | \([21]\) | Look-ahead stations in metres |
+| `sequence_ids` | $[B]$ | Stable scenario/split/index identifiers |
+| `sequence_seeds` | $[B]$ | Independently reproducible sequence seeds |
+| `lengths` | $[B]$ | Original lengths before padding |
+| `conditions` | $[B,T,6]$ | Six physical/scene conditions |
+| `errors` | $[B,T,21]$ | Signed lateral errors in metres |
+| `valid_mask` | $[B,T,21]$ | Valid target values |
+| `conditional_mean` | $[B,T,21]$ | Oracle DGP mean, unavailable for real data |
+| `latent_state` | $[B,T]$ | Oracle regime/burst state, unavailable for real data |
+| `reference_curvature` | $[B,T,21]$ | Reference curvature profiles |
+| `reference_heading` | $[B,T,21]$ | Integrated reference headings |
+| `reference_xy` | $[B,T,21,2]$ | Reference paths in ego-local coordinates |
+| `s_grid_m` | $[21]$ | Look-ahead stations in metres |
 
 Load a split without enabling pickle:
 
@@ -195,6 +201,87 @@ model.save("outputs/models/gaussian.npz")
 
 The model expects the same frozen training standardizer for fitting, scoring, sampling interpretation, and physical-unit inverse transformation. See [Conditional multivariate Gaussian baseline](docs/conditional_multivariate_gaussian.md) for its equations, missing-data estimator, assumptions, and verification protocol.
 
+## Autoregressive input-output HMM
+
+The AIOHMM adds a validation-selected latent state, input-dependent state transitions, station-wise AR(1) memory, and a full state-specific spatial covariance. It is the temporal statistical model between the Gaussian baseline and the later RC-GAN.
+
+```python
+from lane_error_modeling.models import (
+    AIOHMMConfig,
+    AutoregressiveInputOutputHMM,
+)
+
+model = AutoregressiveInputOutputHMM(AIOHMMConfig(n_states=4))
+report = model.fit(standardized_train, standardized_validation)
+samples = model.sample(
+    standardized_test.conditions,
+    standardized_test.lengths,
+    n_samples=100,
+    seed=20260715,
+    valid_mask=standardized_test.valid_mask,
+)
+log_probability = model.log_probability(standardized_test)
+model.save("outputs/models/aiohmm.npz")
+```
+
+Missing current target dimensions are marginalized. A missing previous station value contributes no AR term, equivalent to its standardized training mean. See [Autoregressive input-output HMM](docs/autoregressive_input_output_hmm.md) for the full multivariate adaptation, generalized-EM estimator, assumptions, and diagnostics.
+
+## Common evaluation and model experiments
+
+Phase 5 selects Gaussian hyperparameters using validation data only and evaluates the held-out test split once. Common sample-based metrics are computed in metres and are designed to remain applicable to AIOHMM and RC-GAN.
+
+Run the smoke experiment:
+
+```bash
+python scripts/run_gaussian_experiment.py \
+  --config configs/gaussian_experiment_smoke.json \
+  --output outputs/experiments/gaussian_smoke
+```
+
+After the smoke experiment passes, generate the prototype dataset and run:
+
+```bash
+python scripts/run_gaussian_experiment.py \
+  --config configs/gaussian_experiment_prototype.json \
+  --output outputs/experiments/gaussian_prototype
+```
+
+The output contains the frozen standardizer/model, validation candidate table, physical-unit test metrics, synthetic oracle diagnostics, plots, and SHA-256 provenance. Generated experiment outputs remain excluded from Git. See [Common evaluation and Gaussian experiment protocol](docs/evaluation_protocol.md) for metric equations and interpretation rules.
+
+After the Gaussian experiment, run AIOHMM with the same data and common evaluator:
+
+```bash
+python scripts/run_aiohmm_experiment.py \
+  --config configs/aiohmm_experiment_smoke.json \
+  --output outputs/experiments/aiohmm_smoke
+```
+
+The AIOHMM search compares hidden-state counts and deterministic initialization restarts using validation NLL. Its test split is not loaded until selection is frozen. After the smoke gate passes:
+
+```bash
+python scripts/run_aiohmm_experiment.py \
+  --config configs/aiohmm_experiment_prototype.json \
+  --output outputs/experiments/aiohmm_prototype
+```
+
+Existing persisted results can be upgraded with finite-ensemble interval
+metadata and compared without retraining either model:
+
+```bash
+python scripts/upgrade_evaluation_results.py \
+  --root results/synthetic \
+  --write
+
+python scripts/compare_experiments.py \
+  --baseline results/synthetic/gaussian_prototype \
+  --candidate results/synthetic/aiohmm_prototype \
+  --output results/synthetic/gaussian_vs_aiohmm
+```
+
+The comparison first checks that both models used the same scenarios,
+observations, station grid, and evaluation references. The output is written
+as deterministic JSON, CSV, and Markdown tables.
+
 ## Scientific safeguards
 
 - Train, validation, and test sequences use disjoint deterministic seeds.
@@ -212,6 +299,10 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 - [Synthetic data generation methodology](docs/synthetic_data_generation.md)
 - [Preprocessing and common model contract](docs/preprocessing_and_model_contract.md)
 - [Conditional multivariate Gaussian baseline](docs/conditional_multivariate_gaussian.md)
+- [Autoregressive input-output HMM](docs/autoregressive_input_output_hmm.md)
+- [Phase 6 AIOHMM smoke results](docs/phase6_smoke_results.md)
+- [Common evaluation and model experiment protocol](docs/evaluation_protocol.md)
+- [Phase 6.1 evaluation reporting and comparison](docs/phase6_1_evaluation_reporting.md)
 
 ## Tests
 
@@ -219,7 +310,7 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 python -m unittest discover -s tests -v
 ```
 
-Tests cover configuration validation, path geometry, signed error recovery, deterministic generation, split independence, masks, serialization, manifest integrity, and intended scenario properties.
+Tests cover configuration validation, path geometry, signed error recovery, deterministic generation, split independence, masks, serialization, manifest integrity, intended scenario properties, exact HMM inference, AIOHMM fitting/sampling/persistence, and leakage-safe model selection.
 
 The core end-to-end scientific checks can also be run directly:
 
@@ -227,4 +318,6 @@ The core end-to-end scientific checks can also be run directly:
 PYTHONPATH=src python scripts/verify_synthetic_pipeline.py
 PYTHONPATH=src python scripts/verify_preprocessing_pipeline.py
 PYTHONPATH=src python scripts/verify_gaussian_model.py
+PYTHONPATH=src python scripts/run_gaussian_experiment.py --config configs/gaussian_experiment_smoke.json --output outputs/experiments/gaussian_smoke
+PYTHONPATH=src python scripts/run_aiohmm_experiment.py --config configs/aiohmm_experiment_smoke.json --output outputs/experiments/aiohmm_smoke
 ```

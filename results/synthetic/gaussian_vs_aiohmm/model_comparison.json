@@ -1,0 +1,278 @@
+{
+  "baseline_model": "conditional_multivariate_gaussian",
+  "candidate_model": "autoregressive_input_output_hmm",
+  "interpretation": "positive candidate_improvement_percent means the candidate is better; synthetic results are capability checks, not final real-world rankings",
+  "reference_sha256_by_scenario": {
+    "conditional_gaussian": "70d9722276b90a306a5cdabc0759e1db94bd256dd01c83bd6c12c46cff2fa584",
+    "latent_autoregressive": "96fa368d96c4ef2a1850025ceee29077cc908d4cd487900721b0311f02ad1fcb",
+    "nonlinear_heavy_tailed": "8dcc417639c3ba70e2b6e54190111e5f24b2b3f66816939a9d856495bde042ec"
+  },
+  "rows": [
+    {
+      "baseline_value": 0.05934214633299721,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -0.029690086010738647,
+      "candidate_value": 0.0593597650672841,
+      "lower_is_better": true,
+      "metric": "predictive_mean_rmse_m",
+      "metric_label": "Predictive-mean RMSE",
+      "scenario": "conditional_gaussian",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.02941265750049405,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -0.00196961237309403,
+      "candidate_value": 0.029413236815835436,
+      "lower_is_better": true,
+      "metric": "crps_m",
+      "metric_label": "CRPS",
+      "scenario": "conditional_gaussian",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.0397455549604796,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 0.12404262123946559,
+      "candidate_value": 0.03969625353228045,
+      "lower_is_better": true,
+      "metric": "dimension_normalized_energy_score_m",
+      "metric_label": "Energy score",
+      "scenario": "conditional_gaussian",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.011535471429395273,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -28.00758523329027,
+      "candidate_value": 0.014766278422045002,
+      "lower_is_better": true,
+      "metric": "error_jensen_shannon_distance",
+      "metric_label": "Marginal JS distance",
+      "scenario": "conditional_gaussian",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.01151735235888169,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -24.420156654946524,
+      "candidate_value": 0.014329907847422777,
+      "lower_is_better": true,
+      "metric": "first_difference_jensen_shannon_distance",
+      "metric_label": "First-difference JS distance",
+      "scenario": "conditional_gaussian",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.005098226357774255,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 15.444333413993522,
+      "candidate_value": 0.0043108392808795006,
+      "lower_is_better": true,
+      "metric": "residual_lag_one_correlation_mae",
+      "metric_label": "Lag-one correlation MAE",
+      "scenario": "conditional_gaussian",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.004840668305359721,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -772.9033369545474,
+      "candidate_value": 0.04225435516838615,
+      "lower_is_better": true,
+      "metric": "residual_spatial_correlation_rmse",
+      "metric_label": "Spatial-correlation RMSE",
+      "scenario": "conditional_gaussian",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.0008424586057662609,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -327.7885731751336,
+      "candidate_value": 0.003603941649198611,
+      "lower_is_better": true,
+      "metric": "abs_quantile_error_q99_m",
+      "metric_label": "Absolute q99 error",
+      "scenario": "conditional_gaussian",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.10971189363124648,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 0.07223912181965113,
+      "candidate_value": 0.10963263872275555,
+      "lower_is_better": true,
+      "metric": "predictive_mean_rmse_m",
+      "metric_label": "Predictive-mean RMSE",
+      "scenario": "latent_autoregressive",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.051016067556985026,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 3.731034428477224,
+      "candidate_value": 0.049112640512378715,
+      "lower_is_better": true,
+      "metric": "crps_m",
+      "metric_label": "CRPS",
+      "scenario": "latent_autoregressive",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.07105375897679318,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 3.5888695051237707,
+      "candidate_value": 0.06850373228863091,
+      "lower_is_better": true,
+      "metric": "dimension_normalized_energy_score_m",
+      "metric_label": "Energy score",
+      "scenario": "latent_autoregressive",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.16527511670866882,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 91.07076836575497,
+      "candidate_value": 0.014757798004685864,
+      "lower_is_better": true,
+      "metric": "error_jensen_shannon_distance",
+      "metric_label": "Marginal JS distance",
+      "scenario": "latent_autoregressive",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.3539164326054366,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 96.21327715483034,
+      "candidate_value": 0.013401834406279558,
+      "lower_is_better": true,
+      "metric": "first_difference_jensen_shannon_distance",
+      "metric_label": "First-difference JS distance",
+      "scenario": "latent_autoregressive",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.7867051295791576,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 99.44976816702673,
+      "candidate_value": 0.004328702054578117,
+      "lower_is_better": true,
+      "metric": "residual_lag_one_correlation_mae",
+      "metric_label": "Lag-one correlation MAE",
+      "scenario": "latent_autoregressive",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.02812987102272889,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -67.13285135916311,
+      "candidate_value": 0.04701425552394177,
+      "lower_is_better": true,
+      "metric": "residual_spatial_correlation_rmse",
+      "metric_label": "Spatial-correlation RMSE",
+      "scenario": "latent_autoregressive",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.0904198294878007,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 94.92784116388269,
+      "candidate_value": 0.004586237370967694,
+      "lower_is_better": true,
+      "metric": "abs_quantile_error_q99_m",
+      "metric_label": "Absolute q99 error",
+      "scenario": "latent_autoregressive",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.1100363067314446,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 0.0030899620415194666,
+      "candidate_value": 0.11003290665133471,
+      "lower_is_better": true,
+      "metric": "predictive_mean_rmse_m",
+      "metric_label": "Predictive-mean RMSE",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.053854267544659926,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 0.7031146147948926,
+      "candidate_value": 0.05347561031886268,
+      "lower_is_better": true,
+      "metric": "crps_m",
+      "metric_label": "CRPS",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.07386877470424484,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 0.7691721260325296,
+      "candidate_value": 0.07330059667937802,
+      "lower_is_better": true,
+      "metric": "dimension_normalized_energy_score_m",
+      "metric_label": "Energy score",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "m"
+    },
+    {
+      "baseline_value": 0.05686181094978857,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 59.032775899018105,
+      "candidate_value": 0.02329470551967654,
+      "lower_is_better": true,
+      "metric": "error_jensen_shannon_distance",
+      "metric_label": "Marginal JS distance",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.32704671439930943,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 95.66344818969232,
+      "candidate_value": 0.014182550213835009,
+      "lower_is_better": true,
+      "metric": "first_difference_jensen_shannon_distance",
+      "metric_label": "First-difference JS distance",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.784883703598413,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 99.50437934609576,
+      "candidate_value": 0.0038900457441622643,
+      "lower_is_better": true,
+      "metric": "residual_lag_one_correlation_mae",
+      "metric_label": "Lag-one correlation MAE",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.014705108994678022,
+      "better_model": "conditional_multivariate_gaussian",
+      "candidate_improvement_percent": -441.92054233451915,
+      "candidate_value": 0.07969000641484131,
+      "lower_is_better": true,
+      "metric": "residual_spatial_correlation_rmse",
+      "metric_label": "Spatial-correlation RMSE",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "1"
+    },
+    {
+      "baseline_value": 0.0457804980874052,
+      "better_model": "autoregressive_input_output_hmm",
+      "candidate_improvement_percent": 75.525191050304,
+      "candidate_value": 0.011204689443111648,
+      "lower_is_better": true,
+      "metric": "abs_quantile_error_q99_m",
+      "metric_label": "Absolute q99 error",
+      "scenario": "nonlinear_heavy_tailed",
+      "unit": "m"
+    }
+  ],
+  "scenario_count": 3,
+  "schema_version": "1.0.0"
+}

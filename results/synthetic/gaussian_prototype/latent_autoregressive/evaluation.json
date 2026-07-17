@@ -6,6 +6,8 @@
     "energy_sample_count": 32,
     "first_difference_generated_value_count": 200000,
     "first_difference_observed_value_count": 200000,
+    "interval_finite_sample_reference": "uniform_order_statistic_expectation",
+    "interval_quantile_method": "linear",
     "jensen_shannon_logarithm_base": "2",
     "marginal_generated_value_count": 200000,
     "marginal_observed_value_count": 200000,
@@ -1054,6 +1056,17 @@
   },
   "interval_metrics": {
     "0.50": {
+      "finite_ensemble": {
+        "central_rank_lower_1_based": 16,
+        "central_rank_meets_nominal_coverage": true,
+        "central_rank_reference_coverage": 0.5076923076923077,
+        "central_rank_upper_1_based": 49,
+        "empirical_minus_linear_uniform_reference": 0.18898692731078087,
+        "ensemble_sample_count": 64,
+        "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+        "linear_uniform_reference_coverage": 0.4846153846153846,
+        "quantile_method": "linear"
+      },
       "global_empirical_coverage": 0.6736023119261655,
       "global_mean_width_m": 0.1297290079932798,
       "nominal_coverage": 0.5,
@@ -1105,6 +1118,17 @@
       ]
     },
     "0.90": {
+      "finite_ensemble": {
+        "central_rank_lower_1_based": 3,
+        "central_rank_meets_nominal_coverage": true,
+        "central_rank_reference_coverage": 0.9076923076923077,
+        "central_rank_upper_1_based": 62,
+        "empirical_minus_linear_uniform_reference": 0.026248752826031008,
+        "ensemble_sample_count": 64,
+        "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+        "linear_uniform_reference_coverage": 0.8723076923076922,
+        "quantile_method": "linear"
+      },
       "global_empirical_coverage": 0.8985564451337232,
       "global_mean_width_m": 0.3088274120652682,
       "nominal_coverage": 0.9,
@@ -1156,6 +1180,17 @@
       ]
     },
     "0.95": {
+      "finite_ensemble": {
+        "central_rank_lower_1_based": 1,
+        "central_rank_meets_nominal_coverage": true,
+        "central_rank_reference_coverage": 0.9538461538461539,
+        "central_rank_upper_1_based": 63,
+        "empirical_minus_linear_uniform_reference": 0.0031238706253596815,
+        "ensemble_sample_count": 64,
+        "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+        "linear_uniform_reference_coverage": 0.9207692307692307,
+        "quantile_method": "linear"
+      },
       "global_empirical_coverage": 0.9238931013945904,
       "global_mean_width_m": 0.3614644635179145,
       "nominal_coverage": 0.95,
@@ -1234,7 +1269,7 @@
   ],
   "sample_count": 64,
   "scenario": "latent_autoregressive",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "sequence_count": 400,
   "station_metrics": {
     "crps_m": [

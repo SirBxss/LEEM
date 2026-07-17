@@ -168,6 +168,9 @@ class EvaluationTest(unittest.TestCase):
         self.assertLessEqual(
             first.global_metrics["error_jensen_shannon_distance"], 1.0
         )
+        finite_ensemble = first.interval_metrics["0.90"]["finite_ensemble"]
+        self.assertEqual(finite_ensemble["ensemble_sample_count"], 12)
+        self.assertEqual(finite_ensemble["quantile_method"], "linear")
         first.validate()
 
     def test_evaluation_rejects_nonzero_physical_padding(self) -> None:
