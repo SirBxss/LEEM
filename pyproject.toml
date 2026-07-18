@@ -15,6 +15,9 @@ dependencies = [
 evaluation = [
     "matplotlib>=3.8",
 ]
+rcgan = [
+    "torch>=2.2",
+]
 
 [project.scripts]
 generate-lane-error-data = "lane_error_modeling.data.synthetic.cli:main"
