@@ -255,8 +255,9 @@ samples = model.sample(
 model.save("outputs/models/rcgan_model.npz")
 ```
 
-RC-GAN has no tractable normalized likelihood. Restarts are selected on
-validation by physical-unit, dimension-normalized Energy Score. See [Recurrent
+RC-GAN has no tractable normalized likelihood. Declared learning-rate/seed
+candidates are first checked by a validation-only conditional-diversity guard,
+then selected by physical-unit, dimension-normalized Energy Score. See [Recurrent
 conditional GAN](docs/recurrent_conditional_gan.md) for the architecture,
 objectives, paper fidelity, LEEM adaptations, and experiment protocol.
 
@@ -307,7 +308,24 @@ python scripts/run_rcgan_experiment.py \
   --output outputs/experiments/rcgan_smoke
 ```
 
-After its smoke manifest passes, run the longer two-restart prototype:
+The smoke run verifies software only. Before the longer prototype, generate the
+small one-scenario stability-pilot dataset and run its three declared learning
+rates:
+
+```bash
+generate-lane-error-data \
+  --config configs/synthetic_rcgan_pilot.json \
+  --output outputs/synthetic_rcgan_pilot
+
+python scripts/run_rcgan_experiment.py \
+  --config configs/rcgan_experiment_pilot.json \
+  --output outputs/experiments/rcgan_pilot
+```
+
+Only proceed when at least one candidate passes the predeclared diversity guard
+and the epoch history does not show non-finite losses or persistent gradient
+clipping. Freeze the learning rate selected by this pilot in the prototype
+configuration before running the longer two-restart, three-scenario experiment:
 
 ```bash
 python scripts/run_rcgan_experiment.py \

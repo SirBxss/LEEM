@@ -23,6 +23,7 @@ from .reference import EvaluationReference
 
 
 SELECTION_METRIC = "dimension_normalized_energy_score_m"
+DIVERSITY_RATIO_METRIC = "generated_to_observed_std_ratio"
 
 
 def _model_dataset(padded: PaddedDataset) -> SequenceDataset:
@@ -106,6 +107,30 @@ def _fit_report_dict(report) -> dict[str, object]:
     }
 
 
+def _stability_gate(report, *, minimum_ratio: float) -> dict[str, object]:
+    """Return the predeclared validation diversity guard for one candidate."""
+
+    if DIVERSITY_RATIO_METRIC not in report.metrics:
+        raise ValueError(
+            f"RC-GAN fit report is missing {DIVERSITY_RATIO_METRIC!r}"
+        )
+    value = float(report.metrics[DIVERSITY_RATIO_METRIC])
+    if not np.isfinite(value) or value < 0.0:
+        raise ValueError("RC-GAN validation diversity ratio is invalid")
+    enabled = minimum_ratio > 0.0
+    return {
+        "enabled": enabled,
+        "metric": DIVERSITY_RATIO_METRIC,
+        "value": value,
+        "minimum": float(minimum_ratio),
+        "passed": (not enabled) or value >= minimum_ratio,
+        "interpretation": (
+            "engineering guard against severe under-dispersion; candidates are "
+            "still ranked only by validation Energy Score"
+        ),
+    }
+
+
 def _select_rcgan(
     *,
     train: SequenceDataset,
@@ -149,6 +174,10 @@ def _select_rcgan(
                 config=experiment.evaluation,
             )
             value = float(validation_evaluation.global_metrics[SELECTION_METRIC])
+            stability_gate = _stability_gate(
+                report,
+                minimum_ratio=experiment.minimum_validation_diversity_ratio,
+            )
         except (RuntimeError, ValueError) as error:
             records.append(
                 {
@@ -165,14 +194,19 @@ def _select_rcgan(
             {
                 "candidate_index": candidate_index,
                 "config": candidate.to_dict(),
-                "status": "passed",
+                "status": (
+                    "passed" if stability_gate["passed"] else "rejected"
+                ),
                 "selection_metric": SELECTION_METRIC,
                 "selection_metric_value": value,
                 "selection_sample_count": experiment.selection_sample_count,
                 "selection_sample_seed": experiment.selection_sample_seed,
                 "fit_report": _fit_report_dict(report),
+                "stability_gate": stability_gate,
             }
         )
+        if not stability_gate["passed"]:
+            continue
         key = (value, candidate.initialization_seed)
         if best_key is None or key < best_key:
             best_key = key
@@ -180,7 +214,9 @@ def _select_rcgan(
             best_report = report
             best_index = candidate_index
     if best_model is None or best_report is None or best_index is None:
-        raise ValueError("every RC-GAN restart failed during validation selection")
+        raise ValueError(
+            "no RC-GAN candidate passed validation selection and stability checks"
+        )
     return best_model, best_report, records, best_index
 
 
@@ -341,10 +377,14 @@ def run_rcgan_experiment(
                 "selected_candidate_index": selected_index,
                 "selected_config": selected_config.to_dict(),
                 "candidates": candidate_records,
+                "stability_gate": candidate_records[selected_index][
+                    "stability_gate"
+                ],
                 "test_data_accessed_during_selection": False,
                 "interpretation": (
                     "sample-based proper score used because RC-GAN has no tractable "
-                    "likelihood; initialization seed is the only searched dimension"
+                    "likelihood; declared learning-rate/seed candidates are filtered "
+                    "by the validation-only diversity guard before ranking"
                 ),
             },
         )
@@ -363,6 +403,9 @@ def run_rcgan_experiment(
             "selected_config": selected_config.to_dict(),
             "architecture": model.architecture_summary(),
             "fit_report": _fit_report_dict(fit_report),
+            "validation_stability_gate": candidate_records[selected_index][
+                "stability_gate"
+            ],
             "density_metrics": {
                 "available": False,
                 "interpretation": (
@@ -403,6 +446,9 @@ def run_rcgan_experiment(
             "validation_selection_metric": candidate_records[selected_index][
                 "selection_metric_value"
             ],
+            "validation_stability_gate": candidate_records[selected_index][
+                "stability_gate"
+            ],
             "test_common_metrics": evaluation.global_metrics,
             "oracle_diagnostics": oracle_diagnostics,
             "artifacts": records,
@@ -427,6 +473,17 @@ def run_rcgan_experiment(
             "synthetic capability evaluation only; scenarios are not pooled into a "
             "single final leaderboard"
         ),
+        "stability_protocol": {
+            "metric": DIVERSITY_RATIO_METRIC,
+            "minimum_validation_ratio": (
+                config.minimum_validation_diversity_ratio
+            ),
+            "test_data_used": False,
+            "interpretation": (
+                "engineering guard against severe under-dispersion; not a common "
+                "comparison metric and not a claim of calibration"
+            ),
+        },
         "paper_basis": {
             "citation": (
                 "Arnelid, L. et al. (2019), Recurrent Conditional Generative "

@@ -15,7 +15,7 @@ if TORCH_AVAILABLE:
 
 
 class RCGANExperimentConfigurationTest(unittest.TestCase):
-    def test_smoke_and_prototype_restart_counts(self) -> None:
+    def test_smoke_pilot_and_prototype_candidate_counts(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
         smoke = RCGANExperimentConfig.load(
             project_root / "configs" / "rcgan_experiment_smoke.json"
@@ -23,10 +23,29 @@ class RCGANExperimentConfigurationTest(unittest.TestCase):
         prototype = RCGANExperimentConfig.load(
             project_root / "configs" / "rcgan_experiment_prototype.json"
         )
+        pilot = RCGANExperimentConfig.load(
+            project_root / "configs" / "rcgan_experiment_pilot.json"
+        )
         self.assertEqual(len(smoke.rcgan_search.candidates()), 1)
+        self.assertEqual(len(pilot.rcgan_search.candidates()), 3)
         self.assertEqual(len(prototype.rcgan_search.candidates()), 2)
+        self.assertEqual(
+            [candidate.learning_rate for candidate in pilot.rcgan_search.candidates()],
+            [1e-5, 1e-4, 3e-4],
+        )
+        self.assertEqual(pilot.scenarios, ("conditional_gaussian",))
+        self.assertEqual(pilot.minimum_validation_diversity_ratio, 0.05)
         self.assertEqual(prototype.rcgan_search.candidates()[0].latent_size, 32)
         self.assertEqual(prototype.rcgan_search.candidates()[0].context_layers, 2)
+
+    def test_invalid_diversity_gate_is_rejected(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        source = RCGANExperimentConfig.load(
+            project_root / "configs" / "rcgan_experiment_pilot.json"
+        ).to_dict()
+        source["minimum_validation_diversity_ratio"] = 1.1
+        with self.assertRaisesRegex(ValueError, r"\[0, 1\]"):
+            RCGANExperimentConfig.from_dict(source)
 
 
 @unittest.skipUnless(TORCH_AVAILABLE, "RC-GAN tests require the optional PyTorch extra")
@@ -66,6 +85,12 @@ class RCGANExperimentRunnerTest(unittest.TestCase):
             self.assertEqual(
                 selection["selection_metric"],
                 "dimension_normalized_energy_score_m",
+            )
+            self.assertFalse(selection["stability_gate"]["enabled"])
+            self.assertTrue(selection["stability_gate"]["passed"])
+            self.assertIn(
+                "generated_to_observed_std_ratio",
+                selection["candidates"][0]["fit_report"]["metrics"],
             )
             self.assertFalse(result["density_metrics"]["available"])
             self.assertEqual(result["architecture"]["noise_layers"], 1)

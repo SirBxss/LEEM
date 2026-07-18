@@ -36,6 +36,7 @@ class RCGANConfig:
     generator_steps: int = 1
     initialization_seed: int = 20260717
     sample_batch_size: int = 16
+    diagnostic_sample_count: int = 8
     device: str = "cpu"
 
     def validate(self) -> None:
@@ -52,6 +53,7 @@ class RCGANConfig:
             "discriminator_steps",
             "generator_steps",
             "sample_batch_size",
+            "diagnostic_sample_count",
         ):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:

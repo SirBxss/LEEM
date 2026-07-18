@@ -433,7 +433,7 @@ class AIOHMMExperimentConfig:
 
 @dataclass(frozen=True)
 class RCGANSearchSpace:
-    """Fixed paper architecture with deterministic initialization restarts."""
+    """Paper architecture with declared learning-rate and seed candidates."""
 
     initialization_seeds: tuple[int, ...] = (20260717, 20260718)
     latent_size: int = 32
@@ -448,12 +448,14 @@ class RCGANSearchSpace:
     epochs: int = 4
     batch_size: int = 1
     learning_rate: float = 1e-5
+    learning_rate_candidates: tuple[float, ...] = ()
     adam_beta1: float = 0.5
     adam_beta2: float = 0.999
     gradient_clip_norm: float = 1.0
     discriminator_steps: int = 1
     generator_steps: int = 1
     sample_batch_size: int = 16
+    diagnostic_sample_count: int = 8
     device: str = "cpu"
 
     def validate(self) -> None:
@@ -466,16 +468,42 @@ class RCGANSearchSpace:
                 raise ValueError(
                     "initialization_seeds must contain non-negative integers"
                 )
-        self._candidate(self.initialization_seeds[0]).validate()
+        if len(set(self.learning_rate_candidates)) != len(
+            self.learning_rate_candidates
+        ):
+            raise ValueError("learning_rate_candidates must not contain duplicates")
+        rates = self._effective_learning_rates()
+        for rate in rates:
+            if (
+                isinstance(rate, bool)
+                or not isinstance(rate, (int, float))
+                or not math.isfinite(float(rate))
+                or rate <= 0.0
+            ):
+                raise ValueError(
+                    "learning_rate_candidates must contain positive finite numbers"
+                )
+        self._candidate(self.initialization_seeds[0], rates[0]).validate()
 
-    def _candidate(self, seed: int) -> RCGANConfig:
+    def _effective_learning_rates(self) -> tuple[float, ...]:
+        if self.learning_rate_candidates:
+            return tuple(float(value) for value in self.learning_rate_candidates)
+        return (float(self.learning_rate),)
+
+    def _candidate(self, seed: int, learning_rate: float) -> RCGANConfig:
         values = asdict(self)
         values.pop("initialization_seeds")
+        values.pop("learning_rate_candidates")
+        values["learning_rate"] = learning_rate
         return RCGANConfig(initialization_seed=seed, **values)
 
     def candidates(self) -> tuple[RCGANConfig, ...]:
         self.validate()
-        return tuple(self._candidate(seed) for seed in self.initialization_seeds)
+        return tuple(
+            self._candidate(seed, learning_rate)
+            for learning_rate in self._effective_learning_rates()
+            for seed in self.initialization_seeds
+        )
 
     def to_dict(self) -> dict[str, object]:
         self.validate()
@@ -487,6 +515,10 @@ class RCGANSearchSpace:
         data = dict(raw)
         if "initialization_seeds" in data:
             data["initialization_seeds"] = tuple(data["initialization_seeds"])
+        if "learning_rate_candidates" in data:
+            data["learning_rate_candidates"] = tuple(
+                data["learning_rate_candidates"]
+            )
         search = cls(**data)
         search.validate()
         return search
@@ -506,6 +538,7 @@ class RCGANExperimentConfig:
     sample_seed: int
     evaluation: EvaluationConfig
     rcgan_search: RCGANSearchSpace
+    minimum_validation_diversity_ratio: float = 0.0
     create_plots: bool = True
 
     def validate(self) -> None:
@@ -531,6 +564,17 @@ class RCGANExperimentConfig:
                 raise ValueError(f"{name} must be a non-negative integer")
         if not isinstance(self.create_plots, bool):
             raise ValueError("create_plots must be boolean")
+        if (
+            isinstance(self.minimum_validation_diversity_ratio, bool)
+            or not isinstance(
+                self.minimum_validation_diversity_ratio, (int, float)
+            )
+            or not math.isfinite(float(self.minimum_validation_diversity_ratio))
+            or not 0.0 <= self.minimum_validation_diversity_ratio <= 1.0
+        ):
+            raise ValueError(
+                "minimum_validation_diversity_ratio must lie in [0, 1]"
+            )
         self.evaluation.validate()
         self.rcgan_search.validate()
 
@@ -547,6 +591,9 @@ class RCGANExperimentConfig:
             "sample_seed": self.sample_seed,
             "evaluation": self.evaluation.to_dict(),
             "rcgan_search": self.rcgan_search.to_dict(),
+            "minimum_validation_diversity_ratio": (
+                self.minimum_validation_diversity_ratio
+            ),
             "create_plots": self.create_plots,
         }
 

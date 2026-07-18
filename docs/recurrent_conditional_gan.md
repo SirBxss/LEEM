@@ -214,7 +214,30 @@ python scripts/run_rcgan_experiment.py `
   --output outputs/experiments/rcgan_smoke
 ```
 
-After the smoke manifest reports `passed`, run the prototype:
+The smoke manifest proves that the software path works, but it does not establish
+that the generator uses its noise. Generate and run the intermediate
+conditional-Gaussian stability pilot next:
+
+```powershell
+generate-lane-error-data `
+  --config configs/synthetic_rcgan_pilot.json `
+  --output outputs/synthetic_rcgan_pilot
+
+python scripts/run_rcgan_experiment.py `
+  --config configs/rcgan_experiment_pilot.json `
+  --output outputs/experiments/rcgan_pilot
+```
+
+The pilot uses the full paper-sized architecture on 128/32/32 sequences and
+compares learning rates $10^{-5}$, $10^{-4}$, and $3\times10^{-4}$ using the
+validation split only. The easiest conditional-Gaussian scenario is deliberate:
+if RC-GAN cannot preserve stochastic diversity there, an expensive heavy-tailed
+run is not justified.
+
+After at least one pilot candidate passes the stability guard, freeze its selected
+learning rate in `rcgan_experiment_prototype.json`. The committed $10^{-5}$ value
+is the provisional paper anchor and must be revised if another declared pilot
+candidate is selected. Then run the prototype:
 
 ```powershell
 python scripts/run_rcgan_experiment.py `
@@ -226,6 +249,26 @@ The prototype fits two deterministic restarts for each of three scenarios and
 can take hours. Runtime depends strongly on CPU, thread libraries, and sequence
 lengths. Keep the terminal open and do not use the smoke result in model claims.
 
+### 4.5 Epoch-wise stability diagnostics
+
+Every epoch records generator/discriminator losses, pre-clipping gradient norms,
+gradient-clipping fractions, discriminator real/fake probabilities, and the
+conditional diversity ratio
+
+$$
+r_{\mathrm{div}}=
+\frac{\operatorname{mean}_{b,t,k}
+\operatorname{Std}_{s}(\widehat y^{(s)}_{btk}\mid\mathbf x_{bt})}
+{\operatorname{Std}(y_{btk})}.
+$$
+
+The numerator varies latent noise while holding conditions fixed. The denominator
+only makes the diagnostic scale-free. This ratio is an engineering collapse
+indicator, not a calibration metric and not part of the three-model leaderboard.
+The pilot and prototype reject candidates below the conservative predeclared
+threshold $r_{\mathrm{div}}=0.05$ before Energy-Score ranking. The smoke gate keeps
+this rejection disabled because its tiny data and one epoch are not scientific.
+
 ## 5. Current status
 
 Phase 7 implements:
@@ -234,14 +277,17 @@ Phase 7 implements:
 - masked variable-length adversarial training;
 - deterministic full-profile sampling;
 - safe model persistence and exact round-trip tests;
-- validation-only restart selection by physical-unit normalized Energy Score;
+- validation-only stability filtering followed by physical-unit normalized
+  Energy Score selection;
+- epoch-wise loss, discriminator-probability, gradient, and conditional-diversity
+  diagnostics;
 - held-out common evaluation, plots, provenance, and synthetic oracle mean
   diagnostics;
 - smoke and prototype configurations.
 
-The automated smoke runner and complete unit suite pass. No prototype RC-GAN
-result is included in this implementation phase; that requires the longer user
-run. Passing tests establish software correctness checks, not statistical
+The automated smoke runner and complete unit suite pass. Its committed result is
+strongly under-dispersed, so the stability pilot is now required before the
+prototype. Passing tests establish software correctness checks, not statistical
 superiority or publication evidence.
 
 ## 6. Key takeaway

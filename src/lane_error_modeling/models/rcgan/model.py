@@ -43,6 +43,8 @@ from .config import RCGANConfig
 
 
 RCGAN_MODEL_SCHEMA_VERSION = "1.0.0"
+LOW_DIVERSITY_RATIO_WARNING = 0.10
+SEVERE_DIVERSITY_RATIO_WARNING = 0.05
 
 
 @dataclass(frozen=True)
@@ -73,6 +75,15 @@ def _masked_sequence_mean(values: Tensor, frame_mask: Tensor) -> Tensor:
         frame_counts, 1.0
     )
     return torch.mean(per_sequence[eligible])
+
+
+def _finite_scalar(value: Tensor, *, name: str) -> float:
+    """Convert a scalar tensor while failing at the first numerical instability."""
+
+    result = float(value.detach().cpu())
+    if not np.isfinite(result):
+        raise RuntimeError(f"RC-GAN produced a non-finite {name}")
+    return result
 
 
 class RecurrentConditionalGAN(ProbabilisticSequenceModel):
@@ -214,6 +225,12 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
             discriminator.train()
             generator_loss_sum = 0.0
             discriminator_loss_sum = 0.0
+            generator_gradient_norm_sum = 0.0
+            discriminator_gradient_norm_sum = 0.0
+            generator_gradient_update_count = 0
+            discriminator_gradient_update_count = 0
+            generator_clipped_count = 0
+            discriminator_clipped_count = 0
             update_count = 0
             for batch in iter_sequence_batches(
                 train_data,
@@ -243,9 +260,24 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                         self._bce(real_logits, True) + self._bce(fake_logits, False),
                         frame_mask,
                     )
+                    _finite_scalar(
+                        latest_discriminator_loss, name="discriminator loss"
+                    )
                     latest_discriminator_loss.backward()
-                    nn.utils.clip_grad_norm_(
+                    discriminator_gradient_norm = nn.utils.clip_grad_norm_(
                         discriminator.parameters(), self.config.gradient_clip_norm
+                    )
+                    discriminator_gradient_norm_value = _finite_scalar(
+                        discriminator_gradient_norm,
+                        name="discriminator gradient norm",
+                    )
+                    discriminator_gradient_norm_sum += (
+                        discriminator_gradient_norm_value
+                    )
+                    discriminator_gradient_update_count += 1
+                    discriminator_clipped_count += int(
+                        discriminator_gradient_norm_value
+                        > self.config.gradient_clip_norm
                     )
                     discriminator_optimizer.step()
 
@@ -260,18 +292,29 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                     latest_generator_loss = _masked_sequence_mean(
                         self._bce(fake_logits, True), frame_mask
                     )
+                    _finite_scalar(latest_generator_loss, name="generator loss")
                     latest_generator_loss.backward()
-                    nn.utils.clip_grad_norm_(
+                    generator_gradient_norm = nn.utils.clip_grad_norm_(
                         generator.parameters(), self.config.gradient_clip_norm
+                    )
+                    generator_gradient_norm_value = _finite_scalar(
+                        generator_gradient_norm, name="generator gradient norm"
+                    )
+                    generator_gradient_norm_sum += generator_gradient_norm_value
+                    generator_gradient_update_count += 1
+                    generator_clipped_count += int(
+                        generator_gradient_norm_value > self.config.gradient_clip_norm
                     )
                     generator_optimizer.step()
                 for parameter in discriminator.parameters():
                     parameter.requires_grad_(True)
 
-                discriminator_loss_sum += float(
-                    latest_discriminator_loss.detach().cpu()
+                discriminator_loss_sum += _finite_scalar(
+                    latest_discriminator_loss, name="discriminator loss"
                 )
-                generator_loss_sum += float(latest_generator_loss.detach().cpu())
+                generator_loss_sum += _finite_scalar(
+                    latest_generator_loss, name="generator loss"
+                )
                 update_count += 1
             if update_count == 0:
                 raise ValueError("no train batch contained an observed target frame")
@@ -279,6 +322,20 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                 "epoch": float(epoch + 1),
                 "train_discriminator_loss": discriminator_loss_sum / update_count,
                 "train_generator_loss": generator_loss_sum / update_count,
+                "train_discriminator_gradient_norm": (
+                    discriminator_gradient_norm_sum
+                    / discriminator_gradient_update_count
+                ),
+                "train_generator_gradient_norm": (
+                    generator_gradient_norm_sum / generator_gradient_update_count
+                ),
+                "train_discriminator_gradient_clipped_fraction": (
+                    discriminator_clipped_count
+                    / discriminator_gradient_update_count
+                ),
+                "train_generator_gradient_clipped_fraction": (
+                    generator_clipped_count / generator_gradient_update_count
+                ),
             }
             if validation_data is not None:
                 record.update(
@@ -287,6 +344,15 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                         seed=self.config.initialization_seed + 10_000 + epoch,
                     )
                 )
+            diagnostic_data = (
+                validation_data if validation_data is not None else train_data
+            )
+            record.update(
+                self._diversity_diagnostics(
+                    diagnostic_data,
+                    seed=self.config.initialization_seed + 20_000 + epoch,
+                )
+            )
             history.append(record)
 
         self._state = _RCGANState(
@@ -295,16 +361,18 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
             train_sequence_count=train_data.n_sequences,
             training_history=tuple(history),
         )
-        diagnostic_data = validation_data if validation_data is not None else train_data
-        diversity = self._diversity_diagnostic(
-            diagnostic_data, seed=self.config.initialization_seed + 20_000
-        )
         metrics = dict(history[-1])
-        metrics["generated_mean_standard_deviation_standardized"] = diversity
         warnings: list[str] = []
-        if diversity < 0.01:
+        diversity_ratio = metrics["generated_to_observed_std_ratio"]
+        if diversity_ratio < SEVERE_DIVERSITY_RATIO_WARNING:
             warnings.append(
-                "generated ensemble diversity is very small; inspect for mode collapse"
+                "generated conditional diversity is below 5% of observed target "
+                "variability; severe under-dispersion or mode collapse is likely"
+            )
+        elif diversity_ratio < LOW_DIVERSITY_RATIO_WARNING:
+            warnings.append(
+                "generated conditional diversity is below 10% of observed target "
+                "variability; inspect calibration and tails before a longer run"
             )
         report = FitReport(
             model_name=self.model_name,
@@ -326,6 +394,8 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
         discriminator.eval()
         generator_losses: list[float] = []
         discriminator_losses: list[float] = []
+        real_probabilities: list[float] = []
+        fake_probabilities: list[float] = []
         random = torch.Generator(device=self._device)
         random.manual_seed(seed)
         with torch.no_grad():
@@ -367,25 +437,109 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                         ).cpu()
                     )
                 )
+                real_probabilities.append(
+                    float(
+                        _masked_sequence_mean(
+                            torch.sigmoid(real_logits), frame_mask
+                        ).cpu()
+                    )
+                )
+                fake_probabilities.append(
+                    float(
+                        _masked_sequence_mean(
+                            torch.sigmoid(fake_logits), frame_mask
+                        ).cpu()
+                    )
+                )
         if not generator_losses:
             raise ValueError("validation data contain no observed target frame")
         return {
             "validation_discriminator_loss": float(np.mean(discriminator_losses)),
             "validation_generator_loss": float(np.mean(generator_losses)),
+            "validation_discriminator_real_probability": float(
+                np.mean(real_probabilities)
+            ),
+            "validation_discriminator_fake_probability": float(
+                np.mean(fake_probabilities)
+            ),
         }
 
-    def _diversity_diagnostic(self, dataset: SequenceDataset, *, seed: int) -> float:
-        samples = self.sample(
-            dataset.conditions,
-            dataset.lengths,
-            n_samples=4,
-            seed=seed,
-            valid_mask=dataset.valid_mask,
-        ).values
-        generated_standard_deviation = np.std(
-            samples[:, dataset.valid_mask], axis=0, dtype=np.float64
+    def _diversity_diagnostics(
+        self, dataset: SequenceDataset, *, seed: int
+    ) -> dict[str, float]:
+        """Measure response to latent noise at fixed validation conditions.
+
+        The numerator is the mean pointwise ensemble standard deviation.  It is
+        divided by the observed standardized target deviation only to obtain a
+        scale-free collapse indicator; it is not a replacement for calibration
+        or proper-score evaluation.
+        """
+
+        generator, _ = self._require_networks()
+        generator.eval()
+        random = torch.Generator(device=self._device)
+        random.manual_seed(seed)
+        generated_standard_deviation_sum = 0.0
+        observed_value_count = 0
+        with torch.no_grad():
+            for batch in iter_sequence_batches(
+                dataset,
+                batch_size=self.config.batch_size,
+                shuffle=False,
+            ):
+                conditions, _, target_mask, frame_mask = self._batch_tensors(
+                    batch, self._device
+                )
+                if not bool(torch.any(frame_mask)):
+                    continue
+                sample_count = self.config.diagnostic_sample_count
+                repeated_conditions = conditions.repeat((sample_count, 1, 1))
+                noise = torch.randn(
+                    (
+                        sample_count * conditions.shape[0],
+                        conditions.shape[1],
+                        self.config.latent_size,
+                    ),
+                    generator=random,
+                    device=self._device,
+                )
+                generated = generator(noise, repeated_conditions).reshape(
+                    sample_count,
+                    conditions.shape[0],
+                    conditions.shape[1],
+                    target_mask.shape[-1],
+                )
+                pointwise_standard_deviation = torch.std(
+                    generated, dim=0, correction=0
+                )
+                observed = target_mask > 0.0
+                generated_standard_deviation_sum += float(
+                    torch.sum(pointwise_standard_deviation[observed]).cpu()
+                )
+                observed_value_count += int(torch.sum(observed).cpu())
+        if observed_value_count == 0:
+            raise ValueError("diagnostic data contain no observed target value")
+        observed_values = np.asarray(
+            dataset.errors[dataset.valid_mask], dtype=np.float64
         )
-        return float(np.mean(generated_standard_deviation))
+        observed_standard_deviation = float(np.std(observed_values))
+        if not np.isfinite(observed_standard_deviation) or observed_standard_deviation <= 0.0:
+            raise ValueError(
+                "diagnostic target standard deviation must be finite and positive"
+            )
+        generated_standard_deviation = (
+            generated_standard_deviation_sum / observed_value_count
+        )
+        return {
+            "diagnostic_sample_count": float(self.config.diagnostic_sample_count),
+            "generated_mean_standard_deviation_standardized": float(
+                generated_standard_deviation
+            ),
+            "observed_standard_deviation_standardized": observed_standard_deviation,
+            "generated_to_observed_std_ratio": float(
+                generated_standard_deviation / observed_standard_deviation
+            ),
+        }
 
     def _validate_schema(
         self,

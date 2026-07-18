@@ -77,6 +77,7 @@ def _config(**overrides: object) -> RCGANConfig:
         "generator_steps": 1,
         "initialization_seed": 31,
         "sample_batch_size": 2,
+        "diagnostic_sample_count": 4,
         "device": "cpu",
     }
     values.update(overrides)
@@ -120,6 +121,14 @@ class RecurrentConditionalGANTest(unittest.TestCase):
         self.assertTrue(model.is_fitted)
         self.assertFalse(model.capabilities.supports_log_probability)
         self.assertIn("validation_generator_loss", report.metrics)
+        self.assertIn("generated_to_observed_std_ratio", report.metrics)
+        self.assertIn(
+            "validation_discriminator_real_probability", report.metrics
+        )
+        self.assertGreaterEqual(
+            report.metrics["generated_to_observed_std_ratio"], 0.0
+        )
+        self.assertEqual(len(model.training_history), 1)
         first = model.sample(
             dataset.conditions,
             dataset.lengths,

@@ -1,0 +1,211 @@
+{
+  "artifacts": [
+    {
+      "path": "experiment_config.json",
+      "sha256": "c53c7b5f7df111a05b94c9eecd66c2b8e99f57e815e18018fc24a69ac988b025",
+      "size_bytes": 1634
+    },
+    {
+      "path": "conditional_gaussian/standardizer.json",
+      "sha256": "d96a364c11e6715c67a3bb484f60fec238e040cb9d798d7ab23f2bc5e6be14f3",
+      "size_bytes": 2464
+    },
+    {
+      "path": "conditional_gaussian/rcgan_model.npz",
+      "sha256": "1dff0c6858d66142b263017d83a68a4fa888100d2af871226edc31c146338fc3",
+      "size_bytes": 582724
+    },
+    {
+      "path": "conditional_gaussian/evaluation_reference.json",
+      "sha256": "4930caef55d21aa2c260f550a66c67f4b011f9bb18f1e9864a2d696cb40c362a",
+      "size_bytes": 3342
+    },
+    {
+      "path": "conditional_gaussian/evaluation.json",
+      "sha256": "1ffe8d3bac7053fa9653f3dd10c37d4860f224cda0ca290ac3dfacbe6b990a45",
+      "size_bytes": 38796
+    },
+    {
+      "path": "conditional_gaussian/model_selection.json",
+      "sha256": "1413820217e778d29410a9d191a3f20a82a06246491f89dbc149b5c11049f4f5",
+      "size_bytes": 9439
+    },
+    {
+      "path": "conditional_gaussian/scenario_result.json",
+      "sha256": "d33b7f6b8c41c35c6e8fd9729df64d3c6f14520d9a9147e6edad71a78c1207c1",
+      "size_bytes": 45574
+    },
+    {
+      "path": "conditional_gaussian/plots/station_metrics.png",
+      "sha256": "1dee93b5eeb8146355a82e2be6d50d274c56ede1939ca68352ce5f5c0a54e103",
+      "size_bytes": 103388
+    },
+    {
+      "path": "conditional_gaussian/plots/marginal_error_distribution.png",
+      "sha256": "751cd6daf63d9ff6cd44e95da65281843f667f8bc38ef303150830206a299958",
+      "size_bytes": 31636
+    },
+    {
+      "path": "conditional_gaussian/plots/residual_spatial_correlation.png",
+      "sha256": "09f7ed87bb5df36d8e57f59be6a96d57778e33cd941ca1d6bfaabcb50ab40d08",
+      "size_bytes": 64601
+    },
+    {
+      "path": "conditional_gaussian/plots/example_temporal_sequence.png",
+      "sha256": "85d72650d0b25e6a4049a45b657a2a3b241a3dd22a210d0cf9a3912aa4306bfb",
+      "size_bytes": 141086
+    },
+    {
+      "path": "conditional_gaussian/plots/example_spatial_profile.png",
+      "sha256": "844dab37cacfa09d1b49be6db1942d57f1bb7a60d09b760600ced29c02742f6f",
+      "size_bytes": 110899
+    }
+  ],
+  "created_at_utc": "2026-07-18T13:22:27.078313+00:00",
+  "experiment_name": "rcgan_conditional_gaussian_stability_pilot",
+  "model_family": "recurrent_conditional_gan",
+  "paper_basis": {
+    "citation": "Arnelid, L. et al. (2019), Recurrent Conditional Generative Adversarial Networks for Autonomous Driving Sensor Modelling",
+    "doi": "10.1109/ITSC.2019.8916999"
+  },
+  "scenarios": {
+    "conditional_gaussian": {
+      "artifacts": [
+        {
+          "path": "conditional_gaussian/standardizer.json",
+          "sha256": "d96a364c11e6715c67a3bb484f60fec238e040cb9d798d7ab23f2bc5e6be14f3",
+          "size_bytes": 2464
+        },
+        {
+          "path": "conditional_gaussian/rcgan_model.npz",
+          "sha256": "1dff0c6858d66142b263017d83a68a4fa888100d2af871226edc31c146338fc3",
+          "size_bytes": 582724
+        },
+        {
+          "path": "conditional_gaussian/evaluation_reference.json",
+          "sha256": "4930caef55d21aa2c260f550a66c67f4b011f9bb18f1e9864a2d696cb40c362a",
+          "size_bytes": 3342
+        },
+        {
+          "path": "conditional_gaussian/evaluation.json",
+          "sha256": "1ffe8d3bac7053fa9653f3dd10c37d4860f224cda0ca290ac3dfacbe6b990a45",
+          "size_bytes": 38796
+        },
+        {
+          "path": "conditional_gaussian/model_selection.json",
+          "sha256": "1413820217e778d29410a9d191a3f20a82a06246491f89dbc149b5c11049f4f5",
+          "size_bytes": 9439
+        },
+        {
+          "path": "conditional_gaussian/scenario_result.json",
+          "sha256": "d33b7f6b8c41c35c6e8fd9729df64d3c6f14520d9a9147e6edad71a78c1207c1",
+          "size_bytes": 45574
+        },
+        {
+          "path": "conditional_gaussian/plots/station_metrics.png",
+          "sha256": "1dee93b5eeb8146355a82e2be6d50d274c56ede1939ca68352ce5f5c0a54e103",
+          "size_bytes": 103388
+        },
+        {
+          "path": "conditional_gaussian/plots/marginal_error_distribution.png",
+          "sha256": "751cd6daf63d9ff6cd44e95da65281843f667f8bc38ef303150830206a299958",
+          "size_bytes": 31636
+        },
+        {
+          "path": "conditional_gaussian/plots/residual_spatial_correlation.png",
+          "sha256": "09f7ed87bb5df36d8e57f59be6a96d57778e33cd941ca1d6bfaabcb50ab40d08",
+          "size_bytes": 64601
+        },
+        {
+          "path": "conditional_gaussian/plots/example_temporal_sequence.png",
+          "sha256": "85d72650d0b25e6a4049a45b657a2a3b241a3dd22a210d0cf9a3912aa4306bfb",
+          "size_bytes": 141086
+        },
+        {
+          "path": "conditional_gaussian/plots/example_spatial_profile.png",
+          "sha256": "844dab37cacfa09d1b49be6db1942d57f1bb7a60d09b760600ced29c02742f6f",
+          "size_bytes": 110899
+        }
+      ],
+      "oracle_diagnostics": {
+        "conditional_mean_oracle_mae_m": 0.013152148923816585,
+        "conditional_mean_oracle_rmse_m": 0.019905300617374062,
+        "interpretation": "oracle synthetic diagnostic only; unavailable for BMW data"
+      },
+      "selected_candidate_index": 0,
+      "selected_config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 4,
+        "context_hidden_size": 64,
+        "context_layers": 2,
+        "dense_hidden_size": 64,
+        "device": "cpu",
+        "diagnostic_sample_count": 8,
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 64,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 12,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 32,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 1e-05,
+        "noise_hidden_size": 64,
+        "sample_batch_size": 16
+      },
+      "status": "passed",
+      "test_common_metrics": {
+        "abs_exceedance_error_q95": 0.05216,
+        "abs_exceedance_error_q99": 0.01128,
+        "abs_quantile_error_q95_m": 0.09624999389052388,
+        "abs_quantile_error_q99_m": 0.15001395165920273,
+        "crps_m": 0.04109497500994803,
+        "dimension_normalized_energy_score_m": 0.0548068811374373,
+        "energy_score_m": 0.24870312204167072,
+        "error_jensen_shannon_distance": 0.5086420833968868,
+        "first_difference_jensen_shannon_distance": 0.7354080988483693,
+        "generated_abs_exceedance_q95": 0.0,
+        "generated_abs_exceedance_q99": 0.0,
+        "generated_abs_q95_m": 0.03976589664816854,
+        "generated_abs_q99_m": 0.05667022302746777,
+        "observed_abs_exceedance_q95": 0.05216,
+        "observed_abs_exceedance_q99": 0.01128,
+        "observed_abs_q95_m": 0.13601589053869242,
+        "observed_abs_q99_m": 0.2066841746866705,
+        "predictive_mean_mae_m": 0.043274368499505306,
+        "predictive_mean_rmse_m": 0.06276259484196382,
+        "residual_lag_one_correlation_mae": 0.3838608910477164,
+        "residual_spatial_correlation_rmse": 0.4468636016159038
+      },
+      "validation_selection_metric": 0.05565281845299484,
+      "validation_stability_gate": {
+        "enabled": true,
+        "interpretation": "engineering guard against severe under-dispersion; candidates are still ranked only by validation Energy Score",
+        "metric": "generated_to_observed_std_ratio",
+        "minimum": 0.05,
+        "passed": true,
+        "value": 0.07022159054971944
+      }
+    }
+  },
+  "schema_version": "1.0.0",
+  "scientific_scope": "synthetic capability evaluation only; scenarios are not pooled into a single final leaderboard",
+  "source_configuration": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/configs/rcgan_experiment_pilot.json",
+    "sha256": "67060462342623f4982d24e7832f46f867a90c4c3e29750b6fdcdbd22262b63c"
+  },
+  "source_dataset_manifest": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/outputs/synthetic_rcgan_pilot/manifest.json",
+    "sha256": "6c2e804044fc1ed73890c26a5484aa98f0aa03bdf619eddc28bec30d91e17f7c"
+  },
+  "stability_protocol": {
+    "interpretation": "engineering guard against severe under-dispersion; not a common comparison metric and not a claim of calibration",
+    "metric": "generated_to_observed_std_ratio",
+    "minimum_validation_ratio": 0.05,
+    "test_data_used": false
+  },
+  "status": "passed"
+}

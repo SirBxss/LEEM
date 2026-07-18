@@ -4,8 +4,12 @@ PyTorch remains an optional dependency so importing the NumPy-only Gaussian and
 AIOHMM pipelines does not require a deep-learning installation.
 """
 
+from typing import TYPE_CHECKING
+
 from .config import RCGANConfig
-from .model import RecurrentConditionalGAN
+
+if TYPE_CHECKING:
+    from .model import RecurrentConditionalGAN
 
 
 __all__ = ["RCGANConfig", "RecurrentConditionalGAN"]
