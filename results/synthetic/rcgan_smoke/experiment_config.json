@@ -1,0 +1,62 @@
+{
+  "create_plots": false,
+  "dataset_root": "outputs/synthetic_smoke",
+  "evaluation": {
+    "crps_chunk_size": 1024,
+    "energy_pair_count": 64,
+    "histogram_bin_count": 30,
+    "histogram_clip_quantiles": [
+      0.001,
+      0.999
+    ],
+    "interval_levels": [
+      0.5,
+      0.9,
+      0.95
+    ],
+    "max_dependence_frames": 500,
+    "max_dependence_samples": 4,
+    "max_distribution_values": 10000,
+    "max_energy_frames": 100,
+    "metric_seed": 20260714,
+    "tail_probabilities": [
+      0.95,
+      0.99
+    ]
+  },
+  "experiment_name": "rcgan_synthetic_smoke",
+  "rcgan_search": {
+    "adam_beta1": 0.5,
+    "adam_beta2": 0.999,
+    "batch_size": 4,
+    "context_hidden_size": 12,
+    "context_layers": 2,
+    "dense_hidden_size": 12,
+    "device": "cpu",
+    "discriminator_dropout": 0.05,
+    "discriminator_hidden_size": 12,
+    "discriminator_layers": 2,
+    "discriminator_steps": 1,
+    "epochs": 1,
+    "generator_steps": 1,
+    "gradient_clip_norm": 1.0,
+    "initialization_seeds": [
+      20260717
+    ],
+    "latent_size": 8,
+    "leaky_relu_slope": 0.2,
+    "learning_rate": 0.001,
+    "noise_hidden_size": 12,
+    "sample_batch_size": 8
+  },
+  "sample_count": 8,
+  "sample_seed": 20260720,
+  "scenarios": [
+    "conditional_gaussian",
+    "latent_autoregressive",
+    "nonlinear_heavy_tailed"
+  ],
+  "schema_version": "1.0.0",
+  "selection_sample_count": 8,
+  "selection_sample_seed": 20260719
+}

@@ -1,0 +1,380 @@
+{
+  "artifacts": [
+    {
+      "path": "experiment_config.json",
+      "sha256": "3789808eaba554aac0ac0c6c6e4207415ae859b5c0b282329354a461ffabe446",
+      "size_bytes": 1492
+    },
+    {
+      "path": "conditional_gaussian/standardizer.json",
+      "sha256": "aded900e036214b19f66e76cafe3dcd4e64c7506e36ec7d5211ccdfcb42447b8",
+      "size_bytes": 2414
+    },
+    {
+      "path": "conditional_gaussian/rcgan_model.npz",
+      "sha256": "9afc58444c30682610388d1792d8b7d5b11b34fc40742490c5977d17ff332e6d",
+      "size_bytes": 40700
+    },
+    {
+      "path": "conditional_gaussian/evaluation_reference.json",
+      "sha256": "a276c1c0df20b9edb991fb58339effc41a76734929cd6f85a1bd933a2cf68674",
+      "size_bytes": 2286
+    },
+    {
+      "path": "conditional_gaussian/evaluation.json",
+      "sha256": "44987b14abb447e484f33045e444b3933e083be3234ddfe83c1202e3e0f77289",
+      "size_bytes": 38561
+    },
+    {
+      "path": "conditional_gaussian/model_selection.json",
+      "sha256": "1846a36dc6688251eebe179088ab4c9c4bc0f6935d8b68a8834c7c3f6fb250bb",
+      "size_bytes": 2584
+    },
+    {
+      "path": "conditional_gaussian/scenario_result.json",
+      "sha256": "ff479494f10fbc31b3abc1d0b6f1bb3dbec2fe3427efe834263f153c9861eb16",
+      "size_bytes": 44248
+    },
+    {
+      "path": "latent_autoregressive/standardizer.json",
+      "sha256": "04246fd77a658ae9503cbf29649e8acddd9cc7ad8962b3d8c03902a47d8496f7",
+      "size_bytes": 2410
+    },
+    {
+      "path": "latent_autoregressive/rcgan_model.npz",
+      "sha256": "b1e420aed1a560b563cfbc98b1fcb7fe5335e6e7724f8944e24990c0f4faefca",
+      "size_bytes": 40696
+    },
+    {
+      "path": "latent_autoregressive/evaluation_reference.json",
+      "sha256": "1bfcc58365c244cae850f2890d946b294aed31abb8aad2dec2c9f4f1e0f71db1",
+      "size_bytes": 2271
+    },
+    {
+      "path": "latent_autoregressive/evaluation.json",
+      "sha256": "15c43baf38745d8c31ba19add2dea80b013d46ff8ef3ebcf4666b4067da44a3b",
+      "size_bytes": 38648
+    },
+    {
+      "path": "latent_autoregressive/model_selection.json",
+      "sha256": "51888f9045556f521b559368aa9ac7d0ccbd35a23a3ad164d6e581d39776a5c7",
+      "size_bytes": 2582
+    },
+    {
+      "path": "latent_autoregressive/scenario_result.json",
+      "sha256": "f654344b7bc928c66ebf62051d47d7d9c66e524f7b89ce6be9f4002b202595b2",
+      "size_bytes": 44338
+    },
+    {
+      "path": "nonlinear_heavy_tailed/standardizer.json",
+      "sha256": "bfff7a4b3c9095c0ac2db27cce4dca9690ef1b4e5cce1c23e842396b0148b3f0",
+      "size_bytes": 2412
+    },
+    {
+      "path": "nonlinear_heavy_tailed/rcgan_model.npz",
+      "sha256": "a1f76659394f445f604cc5688b83be418e456af2dbb51b0d08722fe1caf4f620",
+      "size_bytes": 40703
+    },
+    {
+      "path": "nonlinear_heavy_tailed/evaluation_reference.json",
+      "sha256": "158b8bf4bc9eaf8f131daa318538c762f0e6b31b2e18497a2c54d9d8c59e851e",
+      "size_bytes": 2281
+    },
+    {
+      "path": "nonlinear_heavy_tailed/evaluation.json",
+      "sha256": "a8db6d78742960d9639d2131ea66b65b194517b11c93c61457658347a307cdd4",
+      "size_bytes": 38711
+    },
+    {
+      "path": "nonlinear_heavy_tailed/model_selection.json",
+      "sha256": "0f9fab46b35b0779434de265ea12d577671b5bac14bdd0545c633dcc1a2c1603",
+      "size_bytes": 2580
+    },
+    {
+      "path": "nonlinear_heavy_tailed/scenario_result.json",
+      "sha256": "36861cbff6c974e7cbec419d4654ca5322c0dd51a9717d07ab7f07f094383441",
+      "size_bytes": 44402
+    }
+  ],
+  "created_at_utc": "2026-07-17T12:02:20.489696+00:00",
+  "experiment_name": "rcgan_synthetic_smoke",
+  "model_family": "recurrent_conditional_gan",
+  "paper_basis": {
+    "citation": "Arnelid, L. et al. (2019), Recurrent Conditional Generative Adversarial Networks for Autonomous Driving Sensor Modelling",
+    "doi": "10.1109/ITSC.2019.8916999"
+  },
+  "scenarios": {
+    "conditional_gaussian": {
+      "artifacts": [
+        {
+          "path": "conditional_gaussian/standardizer.json",
+          "sha256": "aded900e036214b19f66e76cafe3dcd4e64c7506e36ec7d5211ccdfcb42447b8",
+          "size_bytes": 2414
+        },
+        {
+          "path": "conditional_gaussian/rcgan_model.npz",
+          "sha256": "9afc58444c30682610388d1792d8b7d5b11b34fc40742490c5977d17ff332e6d",
+          "size_bytes": 40700
+        },
+        {
+          "path": "conditional_gaussian/evaluation_reference.json",
+          "sha256": "a276c1c0df20b9edb991fb58339effc41a76734929cd6f85a1bd933a2cf68674",
+          "size_bytes": 2286
+        },
+        {
+          "path": "conditional_gaussian/evaluation.json",
+          "sha256": "44987b14abb447e484f33045e444b3933e083be3234ddfe83c1202e3e0f77289",
+          "size_bytes": 38561
+        },
+        {
+          "path": "conditional_gaussian/model_selection.json",
+          "sha256": "1846a36dc6688251eebe179088ab4c9c4bc0f6935d8b68a8834c7c3f6fb250bb",
+          "size_bytes": 2584
+        },
+        {
+          "path": "conditional_gaussian/scenario_result.json",
+          "sha256": "ff479494f10fbc31b3abc1d0b6f1bb3dbec2fe3427efe834263f153c9861eb16",
+          "size_bytes": 44248
+        }
+      ],
+      "oracle_diagnostics": {
+        "conditional_mean_oracle_mae_m": 0.016197275339120455,
+        "conditional_mean_oracle_rmse_m": 0.02571763876404456,
+        "interpretation": "oracle synthetic diagnostic only; unavailable for BMW data"
+      },
+      "selected_candidate_index": 0,
+      "selected_config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 4,
+        "context_hidden_size": 12,
+        "context_layers": 2,
+        "dense_hidden_size": 12,
+        "device": "cpu",
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 12,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 1,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 8,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 0.001,
+        "noise_hidden_size": 12,
+        "sample_batch_size": 8
+      },
+      "status": "passed",
+      "test_common_metrics": {
+        "abs_exceedance_error_q95": 0.04085843995047462,
+        "abs_exceedance_error_q99": 0.007635163021048288,
+        "abs_quantile_error_q95_m": 0.06776725240051756,
+        "abs_quantile_error_q99_m": 0.10803727939724928,
+        "crps_m": 0.04334525418992634,
+        "dimension_normalized_energy_score_m": 0.05559278231400801,
+        "energy_score_m": 0.2508162605087575,
+        "error_jensen_shannon_distance": 0.48840628087144217,
+        "first_difference_jensen_shannon_distance": 0.7392669195280267,
+        "generated_abs_exceedance_q95": 0.0,
+        "generated_abs_exceedance_q99": 0.0,
+        "generated_abs_q95_m": 0.06546606384217729,
+        "generated_abs_q99_m": 0.0934144289791585,
+        "observed_abs_exceedance_q95": 0.04085843995047462,
+        "observed_abs_exceedance_q99": 0.007635163021048288,
+        "observed_abs_q95_m": 0.13323331624269485,
+        "observed_abs_q99_m": 0.20145170837640777,
+        "predictive_mean_mae_m": 0.044143879868562025,
+        "predictive_mean_rmse_m": 0.06394074122037606,
+        "residual_lag_one_correlation_mae": 0.46070857841124147,
+        "residual_spatial_correlation_rmse": 0.604372488769423
+      },
+      "validation_selection_metric": 0.057983427891399736
+    },
+    "latent_autoregressive": {
+      "artifacts": [
+        {
+          "path": "latent_autoregressive/standardizer.json",
+          "sha256": "04246fd77a658ae9503cbf29649e8acddd9cc7ad8962b3d8c03902a47d8496f7",
+          "size_bytes": 2410
+        },
+        {
+          "path": "latent_autoregressive/rcgan_model.npz",
+          "sha256": "b1e420aed1a560b563cfbc98b1fcb7fe5335e6e7724f8944e24990c0f4faefca",
+          "size_bytes": 40696
+        },
+        {
+          "path": "latent_autoregressive/evaluation_reference.json",
+          "sha256": "1bfcc58365c244cae850f2890d946b294aed31abb8aad2dec2c9f4f1e0f71db1",
+          "size_bytes": 2271
+        },
+        {
+          "path": "latent_autoregressive/evaluation.json",
+          "sha256": "15c43baf38745d8c31ba19add2dea80b013d46ff8ef3ebcf4666b4067da44a3b",
+          "size_bytes": 38648
+        },
+        {
+          "path": "latent_autoregressive/model_selection.json",
+          "sha256": "51888f9045556f521b559368aa9ac7d0ccbd35a23a3ad164d6e581d39776a5c7",
+          "size_bytes": 2582
+        },
+        {
+          "path": "latent_autoregressive/scenario_result.json",
+          "sha256": "f654344b7bc928c66ebf62051d47d7d9c66e524f7b89ce6be9f4002b202595b2",
+          "size_bytes": 44338
+        }
+      ],
+      "oracle_diagnostics": {
+        "conditional_mean_oracle_mae_m": 0.05711279339993458,
+        "conditional_mean_oracle_rmse_m": 0.09941348161092164,
+        "interpretation": "oracle synthetic diagnostic only; unavailable for BMW data"
+      },
+      "selected_candidate_index": 0,
+      "selected_config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 4,
+        "context_hidden_size": 12,
+        "context_layers": 2,
+        "dense_hidden_size": 12,
+        "device": "cpu",
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 12,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 1,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 8,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 0.001,
+        "noise_hidden_size": 12,
+        "sample_batch_size": 8
+      },
+      "status": "passed",
+      "test_common_metrics": {
+        "abs_exceedance_error_q95": 0.03695691364701641,
+        "abs_exceedance_error_q99": 0.007932215612042546,
+        "abs_quantile_error_q95_m": 0.1267678018659354,
+        "abs_quantile_error_q99_m": 0.31568790748715325,
+        "crps_m": 0.06904063317095147,
+        "dimension_normalized_energy_score_m": 0.08392742350154736,
+        "energy_score_m": 0.38015144232334985,
+        "error_jensen_shannon_distance": 0.3508969110413715,
+        "first_difference_jensen_shannon_distance": 0.5957123523252028,
+        "generated_abs_exceedance_q95": 0.0,
+        "generated_abs_exceedance_q99": 0.0,
+        "generated_abs_q95_m": 0.10528366900980463,
+        "generated_abs_q99_m": 0.1494048200547697,
+        "observed_abs_exceedance_q95": 0.03695691364701641,
+        "observed_abs_exceedance_q99": 0.007932215612042546,
+        "observed_abs_q95_m": 0.23205147087574002,
+        "observed_abs_q99_m": 0.46509272754192293,
+        "predictive_mean_mae_m": 0.0705124347507657,
+        "predictive_mean_rmse_m": 0.12124532253057826,
+        "residual_lag_one_correlation_mae": 0.28013000061232346,
+        "residual_spatial_correlation_rmse": 0.5487098818350324
+      },
+      "validation_selection_metric": 0.0913329775480756
+    },
+    "nonlinear_heavy_tailed": {
+      "artifacts": [
+        {
+          "path": "nonlinear_heavy_tailed/standardizer.json",
+          "sha256": "bfff7a4b3c9095c0ac2db27cce4dca9690ef1b4e5cce1c23e842396b0148b3f0",
+          "size_bytes": 2412
+        },
+        {
+          "path": "nonlinear_heavy_tailed/rcgan_model.npz",
+          "sha256": "a1f76659394f445f604cc5688b83be418e456af2dbb51b0d08722fe1caf4f620",
+          "size_bytes": 40703
+        },
+        {
+          "path": "nonlinear_heavy_tailed/evaluation_reference.json",
+          "sha256": "158b8bf4bc9eaf8f131daa318538c762f0e6b31b2e18497a2c54d9d8c59e851e",
+          "size_bytes": 2281
+        },
+        {
+          "path": "nonlinear_heavy_tailed/evaluation.json",
+          "sha256": "a8db6d78742960d9639d2131ea66b65b194517b11c93c61457658347a307cdd4",
+          "size_bytes": 38711
+        },
+        {
+          "path": "nonlinear_heavy_tailed/model_selection.json",
+          "sha256": "0f9fab46b35b0779434de265ea12d577671b5bac14bdd0545c633dcc1a2c1603",
+          "size_bytes": 2580
+        },
+        {
+          "path": "nonlinear_heavy_tailed/scenario_result.json",
+          "sha256": "36861cbff6c974e7cbec419d4654ca5322c0dd51a9717d07ab7f07f094383441",
+          "size_bytes": 44402
+        }
+      ],
+      "oracle_diagnostics": {
+        "conditional_mean_oracle_mae_m": 0.06225278247228773,
+        "conditional_mean_oracle_rmse_m": 0.09215757676631532,
+        "interpretation": "oracle synthetic diagnostic only; unavailable for BMW data"
+      },
+      "selected_candidate_index": 0,
+      "selected_config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 4,
+        "context_hidden_size": 12,
+        "context_layers": 2,
+        "dense_hidden_size": 12,
+        "device": "cpu",
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 12,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 1,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 8,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 0.001,
+        "noise_hidden_size": 12,
+        "sample_batch_size": 8
+      },
+      "status": "passed",
+      "test_common_metrics": {
+        "abs_exceedance_error_q95": 0.046176046176046176,
+        "abs_exceedance_error_q99": 0.006802721088435374,
+        "abs_quantile_error_q95_m": 0.13323315717279915,
+        "abs_quantile_error_q99_m": 0.20392316028475752,
+        "crps_m": 0.07493487147159156,
+        "dimension_normalized_energy_score_m": 0.10078421465709451,
+        "energy_score_m": 0.4555217347383245,
+        "error_jensen_shannon_distance": 0.4722441987750007,
+        "first_difference_jensen_shannon_distance": 0.5828501006698453,
+        "generated_abs_exceedance_q95": 0.0,
+        "generated_abs_exceedance_q99": 0.0,
+        "generated_abs_q95_m": 0.09272729866206643,
+        "generated_abs_q99_m": 0.12706012085080157,
+        "observed_abs_exceedance_q95": 0.046176046176046176,
+        "observed_abs_exceedance_q99": 0.006802721088435374,
+        "observed_abs_q95_m": 0.22596045583486557,
+        "observed_abs_q99_m": 0.3309832811355591,
+        "predictive_mean_mae_m": 0.07633201218027062,
+        "predictive_mean_rmse_m": 0.11098070738442599,
+        "residual_lag_one_correlation_mae": 0.2834449034966634,
+        "residual_spatial_correlation_rmse": 0.5714816842304543
+      },
+      "validation_selection_metric": 0.12090353049450708
+    }
+  },
+  "schema_version": "1.0.0",
+  "scientific_scope": "synthetic capability evaluation only; scenarios are not pooled into a single final leaderboard",
+  "source_configuration": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/configs/rcgan_experiment_smoke.json",
+    "sha256": "94997c8a659e1543aac85dced290ae181a2007257b558b81f398bcd48dfdce93"
+  },
+  "source_dataset_manifest": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/outputs/synthetic_smoke/manifest.json",
+    "sha256": "36cf12ee49b6049af47987a56fb505ec165d64665836b7e7fa04caf02051a181"
+  },
+  "status": "passed"
+}

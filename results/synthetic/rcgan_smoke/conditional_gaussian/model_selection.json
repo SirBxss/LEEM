@@ -1,0 +1,77 @@
+{
+  "candidates": [
+    {
+      "candidate_index": 0,
+      "config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 4,
+        "context_hidden_size": 12,
+        "context_layers": 2,
+        "dense_hidden_size": 12,
+        "device": "cpu",
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 12,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 1,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 8,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 0.001,
+        "noise_hidden_size": 12,
+        "sample_batch_size": 8
+      },
+      "fit_report": {
+        "metrics": {
+          "epoch": 1.0,
+          "generated_mean_standard_deviation_standardized": 0.025640335573980738,
+          "train_discriminator_loss": 1.4512203137079875,
+          "train_generator_loss": 0.7460718750953674,
+          "validation_discriminator_loss": 1.4173648357391357,
+          "validation_generator_loss": 0.6425277590751648
+        },
+        "model_name": "recurrent_conditional_gan",
+        "train_sequence_count": 12,
+        "validation_sequence_count": 4,
+        "warnings": []
+      },
+      "selection_metric": "dimension_normalized_energy_score_m",
+      "selection_metric_value": 0.057983427891399736,
+      "selection_sample_count": 8,
+      "selection_sample_seed": 20260719,
+      "status": "passed"
+    }
+  ],
+  "interpretation": "sample-based proper score used because RC-GAN has no tractable likelihood; initialization seed is the only searched dimension",
+  "lower_is_better": true,
+  "selected_candidate_index": 0,
+  "selected_config": {
+    "adam_beta1": 0.5,
+    "adam_beta2": 0.999,
+    "batch_size": 4,
+    "context_hidden_size": 12,
+    "context_layers": 2,
+    "dense_hidden_size": 12,
+    "device": "cpu",
+    "discriminator_dropout": 0.05,
+    "discriminator_hidden_size": 12,
+    "discriminator_layers": 2,
+    "discriminator_steps": 1,
+    "epochs": 1,
+    "generator_steps": 1,
+    "gradient_clip_norm": 1.0,
+    "initialization_seed": 20260717,
+    "latent_size": 8,
+    "leaky_relu_slope": 0.2,
+    "learning_rate": 0.001,
+    "noise_hidden_size": 12,
+    "sample_batch_size": 8
+  },
+  "selection_metric": "dimension_normalized_energy_score_m",
+  "selection_metric_units": "metres per square-root observed dimension",
+  "selection_split": "validation",
+  "test_data_accessed_during_selection": false
+}
