@@ -8,7 +8,7 @@ This package implements the data and modelling pipeline for the lane-estimation 
 
 The synthetic data are controlled implementation and capability tests. They are **not evidence of real BMW sensor behaviour** and must not be used for final model ranking or real-world claims.
 
-The package also contains the common preprocessing/model interfaces, the conditional multivariate Gaussian baseline, and the AIOHMM temporal model used by synthetic and later BMW-derived datasets. The main source layout is:
+The package also contains the common preprocessing/model interfaces and all three planned model families for synthetic and later BMW-derived datasets. The main source layout is:
 
 ```text
 src/lane_error_modeling/
@@ -19,7 +19,8 @@ src/lane_error_modeling/
 └── models/
     ├── aiohmm/
     ├── base.py
-    └── gaussian/
+    ├── gaussian/
+    └── rcgan/
 ```
 
 ## Data contract
@@ -50,6 +51,12 @@ The core runtime dependency is NumPy. Install the optional evaluation plots with
 
 ```bash
 python -m pip install -e ".[evaluation]"
+```
+
+RC-GAN additionally requires PyTorch:
+
+```bash
+python -m pip install -e ".[evaluation,rcgan]"
 ```
 
 ## Generate the verified smoke dataset
@@ -226,6 +233,33 @@ model.save("outputs/models/aiohmm.npz")
 
 Missing current target dimensions are marginalized. A missing previous station value contributes no AR term, equivalent to its standardized training mean. See [Autoregressive input-output HMM](docs/autoregressive_input_output_hmm.md) for the full multivariate adaptation, generalized-EM estimator, assumptions, and diagnostics.
 
+## Recurrent conditional GAN
+
+The third model follows Arnelid et al.'s RC-GAN: a separate one-layer noise LSTM,
+a deep condition LSTM, condition skip connections, and a recurrent conditional
+discriminator. LEEM adds target masks and padded-sequence loss masks while
+retaining full-profile generation.
+
+```python
+from lane_error_modeling.models import RCGANConfig, RecurrentConditionalGAN
+
+model = RecurrentConditionalGAN(RCGANConfig())
+report = model.fit(standardized_train, standardized_validation)
+samples = model.sample(
+    standardized_test.conditions,
+    standardized_test.lengths,
+    n_samples=100,
+    seed=20260720,
+    valid_mask=standardized_test.valid_mask,
+)
+model.save("outputs/models/rcgan_model.npz")
+```
+
+RC-GAN has no tractable normalized likelihood. Restarts are selected on
+validation by physical-unit, dimension-normalized Energy Score. See [Recurrent
+conditional GAN](docs/recurrent_conditional_gan.md) for the architecture,
+objectives, paper fidelity, LEEM adaptations, and experiment protocol.
+
 ## Common evaluation and model experiments
 
 Phase 5 selects Gaussian hyperparameters using validation data only and evaluates the held-out test split once. Common sample-based metrics are computed in metres and are designed to remain applicable to AIOHMM and RC-GAN.
@@ -264,6 +298,23 @@ python scripts/run_aiohmm_experiment.py \
   --output outputs/experiments/aiohmm_prototype
 ```
 
+Install the deep-learning extra and run the RC-GAN software gate:
+
+```bash
+python -m pip install -e ".[evaluation,rcgan]"
+python scripts/run_rcgan_experiment.py \
+  --config configs/rcgan_experiment_smoke.json \
+  --output outputs/experiments/rcgan_smoke
+```
+
+After its smoke manifest passes, run the longer two-restart prototype:
+
+```bash
+python scripts/run_rcgan_experiment.py \
+  --config configs/rcgan_experiment_prototype.json \
+  --output outputs/experiments/rcgan_prototype
+```
+
 Existing persisted results can be upgraded with finite-ensemble interval
 metadata and compared without retraining either model:
 
@@ -300,6 +351,7 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 - [Preprocessing and common model contract](docs/preprocessing_and_model_contract.md)
 - [Conditional multivariate Gaussian baseline](docs/conditional_multivariate_gaussian.md)
 - [Autoregressive input-output HMM](docs/autoregressive_input_output_hmm.md)
+- [Recurrent conditional GAN](docs/recurrent_conditional_gan.md)
 - [Phase 6 AIOHMM smoke results](docs/phase6_smoke_results.md)
 - [Common evaluation and model experiment protocol](docs/evaluation_protocol.md)
 - [Phase 6.1 evaluation reporting and comparison](docs/phase6_1_evaluation_reporting.md)
@@ -310,7 +362,7 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 python -m unittest discover -s tests -v
 ```
 
-Tests cover configuration validation, path geometry, signed error recovery, deterministic generation, split independence, masks, serialization, manifest integrity, intended scenario properties, exact HMM inference, AIOHMM fitting/sampling/persistence, and leakage-safe model selection.
+Tests cover configuration validation, path geometry, signed error recovery, deterministic generation, split independence, masks, serialization, manifest integrity, intended scenario properties, exact HMM inference, AIOHMM and RC-GAN fitting/sampling/persistence, and leakage-safe model selection.
 
 The core end-to-end scientific checks can also be run directly:
 
@@ -320,4 +372,5 @@ PYTHONPATH=src python scripts/verify_preprocessing_pipeline.py
 PYTHONPATH=src python scripts/verify_gaussian_model.py
 PYTHONPATH=src python scripts/run_gaussian_experiment.py --config configs/gaussian_experiment_smoke.json --output outputs/experiments/gaussian_smoke
 PYTHONPATH=src python scripts/run_aiohmm_experiment.py --config configs/aiohmm_experiment_smoke.json --output outputs/experiments/aiohmm_smoke
+PYTHONPATH=src python scripts/run_rcgan_experiment.py --config configs/rcgan_experiment_smoke.json --output outputs/experiments/rcgan_smoke
 ```
