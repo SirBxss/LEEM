@@ -238,7 +238,7 @@ Missing current target dimensions are marginalized. A missing previous station v
 The third model follows Arnelid et al.'s RC-GAN: a separate one-layer noise LSTM,
 a deep condition LSTM, condition skip connections, and a recurrent conditional
 discriminator. LEEM adds target masks and padded-sequence loss masks while
-retaining full-profile generation.
+retaining full profile generation.
 
 ```python
 from lane_error_modeling.models import RCGANConfig, RecurrentConditionalGAN
