@@ -1,0 +1,32 @@
+{
+  "candidate_status_counts": {
+    "failed": 0,
+    "passed": 0,
+    "rejected": 2
+  },
+  "common_evaluation": null,
+  "data_provenance": {
+    "train": {
+      "path": "outputs/synthetic_rcgan_pilot/conditional_gaussian/train.npz",
+      "sequence_count": 128,
+      "sha256": "1d6a56cee39eb1b6f555090147d370bf9c792ebe2d9b1786630ddcc4133f945d",
+      "size_bytes": 5155630
+    },
+    "validation": {
+      "path": "outputs/synthetic_rcgan_pilot/conditional_gaussian/validation.npz",
+      "sequence_count": 32,
+      "sha256": "dbb86ae0b11cbc2fe7e192168bc6d8848d41144bc224bd931eab8a50cd2e70d3",
+      "size_bytes": 1264526
+    }
+  },
+  "density_metrics": {
+    "available": false,
+    "interpretation": "RC-GAN is an implicit generative model without tractable NLL"
+  },
+  "interpretation": "no declared candidate passed every predeclared validation-only stability check; the held-out test split was not opened",
+  "model_name": "recurrent_conditional_gan",
+  "scenario": "conditional_gaussian",
+  "selected_config": null,
+  "status": "stability_failed",
+  "test_data_accessed": false
+}
