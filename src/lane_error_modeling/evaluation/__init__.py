@@ -8,6 +8,7 @@ from .config import (
     GaussianSearchSpace,
     RCGANExperimentConfig,
     RCGANSearchSpace,
+    RCGANStabilityChecks,
 )
 from .reference import EvaluationReference
 from .result import EvaluationResult
@@ -43,6 +44,7 @@ __all__ = [
     "GaussianSearchSpace",
     "RCGANExperimentConfig",
     "RCGANSearchSpace",
+    "RCGANStabilityChecks",
 ]
 
 

@@ -162,11 +162,10 @@ not opened until the restart is frozen.
 | Gradient clipping | Not reported | Norm 1.0 stability safeguard, persisted as an adaptation |
 | Dense hidden activation | Not explicit | Leaky-ReLU, slope 0.2, persisted as an implementation choice |
 
-The paper used batch size one. The LEEM model default remains one, while the
-prototype experiment uses batch size four as a transparent runtime compromise.
-This deviation must be retained in the experimental configuration and discussed
-when reporting results. A strict paper-setting sensitivity run can set
-`batch_size` back to `1` without changing any code.
+The paper used batch size one. The LEEM model default remains one. The Phase 7.1
+pilot and provisional prototype configuration used batch size four as a
+transparent runtime compromise, but Phase 7.2 restores batch size one. The final
+prototype configuration must be frozen from the Phase 7.2 decision before use.
 
 The smoke configuration is intentionally tiny: one epoch, small hidden layers,
 one restart, and a larger learning rate. It is a software gate only and must not
@@ -228,16 +227,31 @@ python scripts/run_rcgan_experiment.py `
   --output outputs/experiments/rcgan_pilot
 ```
 
-The pilot uses the full paper-sized architecture on 128/32/32 sequences and
-compares learning rates $10^{-5}$, $10^{-4}$, and $3\times10^{-4}$ using the
-validation split only. The easiest conditional-Gaussian scenario is deliberate:
-if RC-GAN cannot preserve stochastic diversity there, an expensive heavy-tailed
-run is not justified.
+The Phase 7.1 pilot uses the full paper-sized architecture on 128/32/32 sequences
+and compares learning rates $10^{-5}$, $10^{-4}$, and $3\times10^{-4}$ using the
+validation split only. Its selected candidate passed the original diversity
+threshold but remained severely under-dispersed on the test set, while the two
+higher rates showed persistent clipping and discriminator domination. Therefore,
+do not run the prototype from the Phase 7.1 result.
 
-After at least one pilot candidate passes the stability guard, freeze its selected
-learning rate in `rcgan_experiment_prototype.json`. The committed $10^{-5}$ value
-is the provisional paper anchor and must be revised if another declared pilot
-candidate is selected. Then run the prototype:
+Reuse the same data for the Phase 7.2 stabilization gate:
+
+```powershell
+python scripts/run_rcgan_experiment.py `
+  --config configs/rcgan_experiment_pilot_v2.json `
+  --output results/synthetic/rcgan_pilot_v2
+```
+
+Phase 7.2 compares $10^{-5}$, $3\times10^{-5}$, and $5\times10^{-5}$ at the
+paper's batch size one. It requires conditional diversity, non-persistent
+generator clipping, no extreme discriminator separation, minimum validation
+interval coverage, and minimum validation tail exceedance. Every candidate's
+epoch history and validation metrics are persisted. If no candidate passes, the
+runner saves a `stability_failed` result without opening the test split.
+
+Only after Phase 7.2 passes should its selected learning rate and batch size be
+frozen in `rcgan_experiment_prototype.json`. The currently committed prototype
+settings are provisional. Then run the prototype:
 
 ```powershell
 python scripts/run_rcgan_experiment.py `
@@ -265,9 +279,11 @@ $$
 The numerator varies latent noise while holding conditions fixed. The denominator
 only makes the diagnostic scale-free. This ratio is an engineering collapse
 indicator, not a calibration metric and not part of the three-model leaderboard.
-The pilot and prototype reject candidates below the conservative predeclared
-threshold $r_{\mathrm{div}}=0.05$ before Energy-Score ranking. The smoke gate keeps
-this rejection disabled because its tiny data and one epoch are not scientific.
+Phase 7.2 rejects candidates below the predeclared threshold
+$r_{\mathrm{div}}=0.10$ and applies the additional optimization, discriminator,
+coverage, and tail checks described in [Phase 7.2 RC-GAN
+stabilization](phase7_2_rcgan_stabilization.md). The smoke gate keeps all
+rejections disabled because its tiny data and one epoch are not scientific.
 
 ## 5. Current status
 
@@ -285,16 +301,16 @@ Phase 7 implements:
   diagnostics;
 - smoke and prototype configurations.
 
-The automated smoke runner and complete unit suite pass. Its committed result is
-strongly under-dispersed, so the stability pilot is now required before the
-prototype. Passing tests establish software correctness checks, not statistical
-superiority or publication evidence.
+The automated smoke runner and complete unit suite pass. Phase 7.1 also ran to
+completion, but its result was not statistically ready for the prototype. Phase
+7.2 is now the required gate. Passing tests establish software correctness, not
+statistical superiority or publication evidence.
 
 ## 6. Key takeaway
 
 Phase 7 completes the planned three-model implementation without changing the
 frozen LEEM data or evaluation contract. The RC-GAN is faithful to the selected
 paper where the paper is explicit, and every necessary LEEM adaptation is visible
-in configuration, code, and documentation. The next scientific gate is to run
-the prototype, inspect stability and diversity, then compare all three models on
-identical test observations and evaluation references.
+in configuration, code, and documentation. The next scientific gate is Phase
+7.2—not the full prototype. The prototype and three-model comparison follow only
+if at least one predeclared stabilization candidate passes.

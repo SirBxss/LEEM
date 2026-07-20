@@ -107,26 +107,196 @@ def _fit_report_dict(report) -> dict[str, object]:
     }
 
 
-def _stability_gate(report, *, minimum_ratio: float) -> dict[str, object]:
-    """Return the predeclared validation diversity guard for one candidate."""
+def _mean_late_history(
+    history: tuple[dict[str, float], ...],
+    *,
+    metric: str,
+    epoch_count: int,
+) -> float:
+    if not history or any(metric not in record for record in history):
+        raise ValueError(f"RC-GAN history is missing {metric!r}")
+    selected = history[-min(epoch_count, len(history)) :]
+    value = float(np.mean([record[metric] for record in selected]))
+    if not np.isfinite(value):
+        raise ValueError(f"RC-GAN history metric {metric!r} is non-finite")
+    return value
+
+
+def _minimum_check(
+    *, metric: str, value: float | None, minimum: float
+) -> dict[str, object]:
+    enabled = minimum > 0.0
+    return {
+        "enabled": enabled,
+        "metric": metric,
+        "value": value,
+        "minimum": float(minimum),
+        "passed": (not enabled) or (value is not None and value >= minimum),
+    }
+
+
+def _maximum_check(
+    *, metric: str, value: float, maximum: float
+) -> dict[str, object]:
+    enabled = maximum < 1.0
+    return {
+        "enabled": enabled,
+        "metric": metric,
+        "value": value,
+        "maximum": float(maximum),
+        "passed": (not enabled) or value <= maximum,
+    }
+
+
+def _validation_evaluation_summary(evaluation) -> dict[str, object]:
+    return {
+        "global_metrics": dict(evaluation.global_metrics),
+        "interval_metrics": {
+            level: {
+                "nominal_coverage": details["nominal_coverage"],
+                "global_empirical_coverage": details[
+                    "global_empirical_coverage"
+                ],
+                "global_mean_width_m": details["global_mean_width_m"],
+                "finite_ensemble": dict(details["finite_ensemble"]),
+            }
+            for level, details in evaluation.interval_metrics.items()
+        },
+    }
+
+
+def _stability_gate(
+    report,
+    *,
+    training_history: tuple[dict[str, float], ...],
+    validation_evaluation,
+    experiment: RCGANExperimentConfig,
+) -> dict[str, object]:
+    """Apply all predeclared validation-only engineering stability checks."""
 
     if DIVERSITY_RATIO_METRIC not in report.metrics:
         raise ValueError(
             f"RC-GAN fit report is missing {DIVERSITY_RATIO_METRIC!r}"
         )
-    value = float(report.metrics[DIVERSITY_RATIO_METRIC])
-    if not np.isfinite(value) or value < 0.0:
+    diversity_ratio = float(report.metrics[DIVERSITY_RATIO_METRIC])
+    if not np.isfinite(diversity_ratio) or diversity_ratio < 0.0:
         raise ValueError("RC-GAN validation diversity ratio is invalid")
-    enabled = minimum_ratio > 0.0
+    checks = experiment.stability_checks
+    late_generator_clipping = _mean_late_history(
+        training_history,
+        metric="train_generator_gradient_clipped_fraction",
+        epoch_count=checks.late_epoch_count,
+    )
+    late_real_probability = _mean_late_history(
+        training_history,
+        metric="validation_discriminator_real_probability",
+        epoch_count=checks.late_epoch_count,
+    )
+    late_fake_probability = _mean_late_history(
+        training_history,
+        metric="validation_discriminator_fake_probability",
+        epoch_count=checks.late_epoch_count,
+    )
+    discriminator_probability_gap = abs(
+        late_real_probability - late_fake_probability
+    )
+
+    interval_key = f"{checks.interval_level:.2f}"
+    if interval_key not in validation_evaluation.interval_metrics:
+        raise ValueError(
+            f"validation evaluation is missing interval level {interval_key}"
+        )
+    interval = validation_evaluation.interval_metrics[interval_key]
+    empirical_coverage = float(interval["global_empirical_coverage"])
+    finite_ensemble = interval["finite_ensemble"]
+    if not isinstance(finite_ensemble, Mapping):
+        raise ValueError("validation interval finite-ensemble metadata are invalid")
+    reference_coverage = float(
+        finite_ensemble["linear_uniform_reference_coverage"]
+    )
+    if reference_coverage <= 0.0:
+        raise ValueError("validation interval reference coverage must be positive")
+    coverage_fraction = empirical_coverage / reference_coverage
+
+    tail_label = f"q{int(round(checks.tail_probability * 100)):02d}"
+    observed_exceedance = float(
+        validation_evaluation.global_metrics[
+            f"observed_abs_exceedance_{tail_label}"
+        ]
+    )
+    generated_exceedance = float(
+        validation_evaluation.global_metrics[
+            f"generated_abs_exceedance_{tail_label}"
+        ]
+    )
+    exceedance_fraction = (
+        generated_exceedance / observed_exceedance
+        if observed_exceedance > 0.0
+        else None
+    )
+
+    check_records = {
+        "conditional_diversity": _minimum_check(
+            metric=DIVERSITY_RATIO_METRIC,
+            value=diversity_ratio,
+            minimum=experiment.minimum_validation_diversity_ratio,
+        ),
+        "late_generator_gradient_clipping": _maximum_check(
+            metric="mean_late_generator_gradient_clipped_fraction",
+            value=late_generator_clipping,
+            maximum=checks.maximum_generator_clipped_fraction,
+        ),
+        "late_discriminator_separation": _maximum_check(
+            metric="mean_late_discriminator_probability_gap",
+            value=discriminator_probability_gap,
+            maximum=checks.maximum_discriminator_probability_gap,
+        ),
+        "interval_coverage": _minimum_check(
+            metric=(
+                f"validation_{interval_key}_coverage_fraction_of_"
+                "finite_ensemble_reference"
+            ),
+            value=coverage_fraction,
+            minimum=(
+                checks.minimum_interval_coverage_fraction_of_reference
+            ),
+        ),
+        "tail_exceedance": _minimum_check(
+            metric=(
+                f"validation_generated_{tail_label}_exceedance_fraction_of_"
+                "observed"
+            ),
+            value=exceedance_fraction,
+            minimum=(
+                checks.minimum_tail_exceedance_fraction_of_observed
+            ),
+        ),
+    }
+    rejection_reasons = [
+        name
+        for name, details in check_records.items()
+        if details["enabled"] and not details["passed"]
+    ]
+    enabled = any(details["enabled"] for details in check_records.values())
     return {
         "enabled": enabled,
+        "passed": not rejection_reasons,
         "metric": DIVERSITY_RATIO_METRIC,
-        "value": value,
-        "minimum": float(minimum_ratio),
-        "passed": (not enabled) or value >= minimum_ratio,
+        "value": diversity_ratio,
+        "minimum": float(experiment.minimum_validation_diversity_ratio),
+        "late_epoch_count": min(checks.late_epoch_count, len(training_history)),
+        "late_validation_discriminator_real_probability": late_real_probability,
+        "late_validation_discriminator_fake_probability": late_fake_probability,
+        "validation_interval_empirical_coverage": empirical_coverage,
+        "validation_interval_reference_coverage": reference_coverage,
+        "validation_observed_tail_exceedance": observed_exceedance,
+        "validation_generated_tail_exceedance": generated_exceedance,
+        "checks": check_records,
+        "rejection_reasons": rejection_reasons,
         "interpretation": (
-            "engineering guard against severe under-dispersion; candidates are "
-            "still ranked only by validation Energy Score"
+            "validation-only engineering guards against under-dispersion, unstable "
+            "optimization, discriminator domination, poor interval coverage, and "
+            "missing tails; passing candidates are ranked only by Energy Score"
         ),
     }
 
@@ -141,7 +311,12 @@ def _select_rcgan(
     candidates: tuple[RCGANConfig, ...],
     scenario: str,
     experiment: RCGANExperimentConfig,
-) -> tuple[RecurrentConditionalGAN, object, list[dict[str, object]], int]:
+) -> tuple[
+    RecurrentConditionalGAN | None,
+    object | None,
+    list[dict[str, object]],
+    int | None,
+]:
     """Fit restarts and select only by validation physical-unit Energy Score."""
 
     records: list[dict[str, object]] = []
@@ -151,8 +326,10 @@ def _select_rcgan(
     best_key: tuple[float, int] | None = None
     for candidate_index, candidate in enumerate(candidates):
         model = RecurrentConditionalGAN(candidate)
+        training_history: tuple[dict[str, float], ...] = ()
         try:
             report = model.fit(train, validation)
+            training_history = model.training_history
             samples = model.sample(
                 validation.conditions,
                 validation.lengths,
@@ -176,7 +353,9 @@ def _select_rcgan(
             value = float(validation_evaluation.global_metrics[SELECTION_METRIC])
             stability_gate = _stability_gate(
                 report,
-                minimum_ratio=experiment.minimum_validation_diversity_ratio,
+                training_history=training_history,
+                validation_evaluation=validation_evaluation,
+                experiment=experiment,
             )
         except (RuntimeError, ValueError) as error:
             records.append(
@@ -187,6 +366,9 @@ def _select_rcgan(
                     "failure": str(error),
                     "selection_metric": SELECTION_METRIC,
                     "selection_metric_value": None,
+                    "training_history": [
+                        dict(record) for record in training_history
+                    ],
                 }
             )
             continue
@@ -202,6 +384,12 @@ def _select_rcgan(
                 "selection_sample_count": experiment.selection_sample_count,
                 "selection_sample_seed": experiment.selection_sample_seed,
                 "fit_report": _fit_report_dict(report),
+                "training_history": [
+                    dict(record) for record in training_history
+                ],
+                "validation_evaluation": _validation_evaluation_summary(
+                    validation_evaluation
+                ),
                 "stability_gate": stability_gate,
             }
         )
@@ -213,10 +401,6 @@ def _select_rcgan(
             best_model = model
             best_report = report
             best_index = candidate_index
-    if best_model is None or best_report is None or best_index is None:
-        raise ValueError(
-            "no RC-GAN candidate passed validation selection and stability checks"
-        )
     return best_model, best_report, records, best_index
 
 
@@ -262,6 +446,80 @@ def _artifact_record(path: Path, output_root: Path) -> dict[str, object]:
         "path": path.relative_to(output_root).as_posix(),
         "sha256": sha256_file(path),
         "size_bytes": path.stat().st_size,
+    }
+
+
+def _selection_payload(
+    *,
+    candidate_records: list[dict[str, object]],
+    selected_index: int | None,
+    selected_config: RCGANConfig | None,
+) -> dict[str, object]:
+    stability_gate = (
+        candidate_records[selected_index]["stability_gate"]
+        if selected_index is not None
+        else None
+    )
+    return {
+        "selection_split": "validation",
+        "selection_metric": SELECTION_METRIC,
+        "selection_metric_units": "metres per square-root observed dimension",
+        "lower_is_better": True,
+        "selected_candidate_index": selected_index,
+        "selected_config": (
+            selected_config.to_dict() if selected_config is not None else None
+        ),
+        "selection_status": (
+            "passed" if selected_index is not None else "stability_failed"
+        ),
+        "candidate_status_counts": {
+            status: sum(record["status"] == status for record in candidate_records)
+            for status in ("passed", "rejected", "failed")
+        },
+        "candidates": candidate_records,
+        "stability_gate": stability_gate,
+        "test_data_accessed_during_selection": False,
+        "test_data_accessed": selected_index is not None,
+        "interpretation": (
+            "sample-based proper score is used because RC-GAN has no tractable "
+            "likelihood; declared learning-rate/seed candidates must pass every "
+            "enabled validation-only stability check before Energy-Score ranking"
+        ),
+    }
+
+
+def _failed_stability_result(
+    *,
+    scenario: str,
+    train_provenance: Mapping[str, object],
+    validation_provenance: Mapping[str, object],
+    candidate_records: list[dict[str, object]],
+) -> dict[str, object]:
+    return {
+        "status": "stability_failed",
+        "model_name": "recurrent_conditional_gan",
+        "scenario": scenario,
+        "interpretation": (
+            "no declared candidate passed every predeclared validation-only "
+            "stability check; the held-out test split was not opened"
+        ),
+        "data_provenance": {
+            "train": train_provenance,
+            "validation": validation_provenance,
+        },
+        "selected_config": None,
+        "candidate_status_counts": {
+            status: sum(record["status"] == status for record in candidate_records)
+            for status in ("passed", "rejected", "failed")
+        },
+        "density_metrics": {
+            "available": False,
+            "interpretation": (
+                "RC-GAN is an implicit generative model without tractable NLL"
+            ),
+        },
+        "common_evaluation": None,
+        "test_data_accessed": False,
     }
 
 
@@ -324,8 +582,52 @@ def run_rcgan_experiment(
             scenario=scenario,
             experiment=config,
         )
-        selected_config = model.config
+        selected_config = model.config if model is not None else None
         del train, validation, raw_train, raw_validation
+
+        standardizer_path = standardizer.save(scenario_output / "standardizer.json")
+        reference_path = reference.save(
+            scenario_output / "evaluation_reference.json"
+        )
+        selection_path = atomic_write_json(
+            scenario_output / "model_selection.json",
+            _selection_payload(
+                candidate_records=candidate_records,
+                selected_index=selected_index,
+                selected_config=selected_config,
+            ),
+        )
+
+        if model is None or fit_report is None or selected_index is None:
+            scenario_result_path = atomic_write_json(
+                scenario_output / "scenario_result.json",
+                _failed_stability_result(
+                    scenario=scenario,
+                    train_provenance=train_provenance,
+                    validation_provenance=validation_provenance,
+                    candidate_records=candidate_records,
+                ),
+            )
+            artifact_paths = (
+                standardizer_path,
+                reference_path,
+                selection_path,
+                scenario_result_path,
+            )
+            records = [
+                _artifact_record(path, destination) for path in artifact_paths
+            ]
+            all_artifacts.extend(records)
+            scenario_summaries[scenario] = {
+                "status": "stability_failed",
+                "selected_candidate_index": None,
+                "selected_config": None,
+                "validation_selection_metric": None,
+                "validation_stability_gate": None,
+                "test_data_accessed": False,
+                "artifacts": records,
+            }
+            continue
 
         # Test remains unopened until the candidate index is irrevocably frozen.
         test_padded, test_provenance = _load_verified_split(
@@ -361,33 +663,8 @@ def run_rcgan_experiment(
         )
         del test, oracle_conditional_mean
 
-        standardizer_path = standardizer.save(scenario_output / "standardizer.json")
         model_path = model.save(scenario_output / "rcgan_model.npz")
-        reference_path = reference.save(
-            scenario_output / "evaluation_reference.json"
-        )
         evaluation_path = evaluation.save(scenario_output / "evaluation.json")
-        selection_path = atomic_write_json(
-            scenario_output / "model_selection.json",
-            {
-                "selection_split": "validation",
-                "selection_metric": SELECTION_METRIC,
-                "selection_metric_units": "metres per square-root observed dimension",
-                "lower_is_better": True,
-                "selected_candidate_index": selected_index,
-                "selected_config": selected_config.to_dict(),
-                "candidates": candidate_records,
-                "stability_gate": candidate_records[selected_index][
-                    "stability_gate"
-                ],
-                "test_data_accessed_during_selection": False,
-                "interpretation": (
-                    "sample-based proper score used because RC-GAN has no tractable "
-                    "likelihood; declared learning-rate/seed candidates are filtered "
-                    "by the validation-only diversity guard before ranking"
-                ),
-            },
-        )
         scenario_result = {
             "status": "passed",
             "model_name": model.model_name,
@@ -458,7 +735,14 @@ def run_rcgan_experiment(
     manifest = {
         "schema_version": config.schema_version,
         "experiment_name": config.experiment_name,
-        "status": "passed",
+        "status": (
+            "passed"
+            if all(
+                summary["status"] == "passed"
+                for summary in scenario_summaries.values()
+            )
+            else "stability_failed"
+        ),
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_family": "recurrent_conditional_gan",
         "source_configuration": {
@@ -478,10 +762,13 @@ def run_rcgan_experiment(
             "minimum_validation_ratio": (
                 config.minimum_validation_diversity_ratio
             ),
-            "test_data_used": False,
+            "additional_checks": config.stability_checks.to_dict(),
+            "test_data_used_for_selection": False,
             "interpretation": (
-                "engineering guard against severe under-dispersion; not a common "
-                "comparison metric and not a claim of calibration"
+                "validation-only engineering guards against severe "
+                "under-dispersion, persistent clipping, discriminator domination, "
+                "poor interval coverage, and missing tails; these are not common "
+                "leaderboard metrics or claims of calibration"
             ),
         },
         "paper_basis": {

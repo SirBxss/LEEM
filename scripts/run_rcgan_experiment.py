@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from lane_error_modeling.evaluation import run_rcgan_experiment
@@ -31,7 +32,11 @@ def main() -> None:
         output_root=arguments.output,
         overwrite=arguments.overwrite,
     )
-    print(f"RC-GAN experiment passed: {manifest}")
+    with manifest.open("r", encoding="utf-8") as handle:
+        status = json.load(handle)["status"]
+    print(f"RC-GAN experiment status={status}: {manifest}")
+    if status != "passed":
+        raise SystemExit(2)
 
 
 if __name__ == "__main__":

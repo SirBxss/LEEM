@@ -239,8 +239,17 @@ python scripts/run_aiohmm_experiment.py `
   --output outputs/experiments/aiohmm_prototype
 ```
 
-Run the RC-GAN prototype only after its PyTorch-enabled test suite and smoke
-experiment pass:
+Run the RC-GAN prototype only after its PyTorch-enabled test suite, smoke
+experiment, and Phase 7.2 validation-only stabilization gate pass. Phase 7.2
+must select at least one candidate before the test split is opened:
+
+```powershell
+python scripts/run_rcgan_experiment.py `
+  --config configs/rcgan_experiment_pilot_v2.json `
+  --output results/synthetic/rcgan_pilot_v2
+```
+
+Only then run:
 
 ```powershell
 python scripts/run_rcgan_experiment.py `
@@ -286,9 +295,13 @@ Phase 6 is complete when:
 
 RC-GAN initialization restarts are selected using validation physical-unit,
 dimension-normalized Energy Score because the implicit model has no tractable
-NLL. Test archives remain unopened until the restart is frozen. The final
-evaluator and frozen common metric definitions are unchanged across all three
-models.
+NLL. Before ranking, Phase 7.2 requires every candidate to pass the predeclared
+validation-only conditional-diversity, late generator-clipping, discriminator
+separation, interval-coverage, and tail-exceedance checks. Test archives remain
+unopened until a passing candidate is frozen. If all candidates fail, the runner
+persists their histories and validation diagnostics with status
+`stability_failed`, without a test evaluation. The final evaluator and frozen
+common metric definitions are unchanged across all three models.
 
 Phase 7 implementation is complete when the paper-based separate noise/context
 architecture, mask-aware variable-length training, deterministic sampling, safe

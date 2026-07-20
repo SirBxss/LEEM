@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import json
 import math
 from pathlib import Path
@@ -525,6 +525,56 @@ class RCGANSearchSpace:
 
 
 @dataclass(frozen=True)
+class RCGANStabilityChecks:
+    """Validation-only engineering guards applied before Energy-Score ranking."""
+
+    late_epoch_count: int = 3
+    maximum_generator_clipped_fraction: float = 1.0
+    maximum_discriminator_probability_gap: float = 1.0
+    interval_level: float = 0.90
+    minimum_interval_coverage_fraction_of_reference: float = 0.0
+    tail_probability: float = 0.95
+    minimum_tail_exceedance_fraction_of_observed: float = 0.0
+
+    def validate(self) -> None:
+        if (
+            isinstance(self.late_epoch_count, bool)
+            or not isinstance(self.late_epoch_count, int)
+            or self.late_epoch_count <= 0
+        ):
+            raise ValueError("late_epoch_count must be a positive integer")
+        for name in (
+            "maximum_generator_clipped_fraction",
+            "maximum_discriminator_probability_gap",
+            "minimum_interval_coverage_fraction_of_reference",
+            "minimum_tail_exceedance_fraction_of_observed",
+        ):
+            value = getattr(self, name)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                or not 0.0 <= value <= 1.0
+            ):
+                raise ValueError(f"{name} must lie in [0, 1]")
+        if not 0.0 < self.interval_level < 1.0:
+            raise ValueError("interval_level must lie strictly inside (0, 1)")
+        if not 0.5 < self.tail_probability < 1.0:
+            raise ValueError("tail_probability must lie strictly inside (0.5, 1)")
+
+    def to_dict(self) -> dict[str, object]:
+        self.validate()
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "RCGANStabilityChecks":
+        _reject_unknown(raw, set(cls.__dataclass_fields__), "RC-GAN stability checks")
+        checks = cls(**dict(raw))
+        checks.validate()
+        return checks
+
+
+@dataclass(frozen=True)
 class RCGANExperimentConfig:
     """Leakage-safe validation selection and held-out RC-GAN evaluation."""
 
@@ -539,6 +589,9 @@ class RCGANExperimentConfig:
     evaluation: EvaluationConfig
     rcgan_search: RCGANSearchSpace
     minimum_validation_diversity_ratio: float = 0.0
+    stability_checks: RCGANStabilityChecks = field(
+        default_factory=RCGANStabilityChecks
+    )
     create_plots: bool = True
 
     def validate(self) -> None:
@@ -577,6 +630,26 @@ class RCGANExperimentConfig:
             )
         self.evaluation.validate()
         self.rcgan_search.validate()
+        self.stability_checks.validate()
+        if (
+            self.stability_checks.minimum_interval_coverage_fraction_of_reference
+            > 0.0
+            and self.stability_checks.interval_level
+            not in self.evaluation.interval_levels
+        ):
+            raise ValueError(
+                "stability interval_level must be present in evaluation interval_levels"
+            )
+        if (
+            self.stability_checks.minimum_tail_exceedance_fraction_of_observed
+            > 0.0
+            and self.stability_checks.tail_probability
+            not in self.evaluation.tail_probabilities
+        ):
+            raise ValueError(
+                "stability tail_probability must be present in evaluation "
+                "tail_probabilities"
+            )
 
     def to_dict(self) -> dict[str, object]:
         self.validate()
@@ -594,6 +667,7 @@ class RCGANExperimentConfig:
             "minimum_validation_diversity_ratio": (
                 self.minimum_validation_diversity_ratio
             ),
+            "stability_checks": self.stability_checks.to_dict(),
             "create_plots": self.create_plots,
         }
 
@@ -605,10 +679,18 @@ class RCGANExperimentConfig:
             data["scenarios"] = tuple(data["scenarios"])
         evaluation = data.get("evaluation", {})
         search = data.get("rcgan_search", {})
-        if not isinstance(evaluation, Mapping) or not isinstance(search, Mapping):
-            raise ValueError("evaluation and rcgan_search must be objects")
+        stability = data.get("stability_checks", {})
+        if (
+            not isinstance(evaluation, Mapping)
+            or not isinstance(search, Mapping)
+            or not isinstance(stability, Mapping)
+        ):
+            raise ValueError(
+                "evaluation, rcgan_search, and stability_checks must be objects"
+            )
         data["evaluation"] = EvaluationConfig.from_dict(evaluation)
         data["rcgan_search"] = RCGANSearchSpace.from_dict(search)
+        data["stability_checks"] = RCGANStabilityChecks.from_dict(stability)
         config = cls(**data)
         config.validate()
         return config

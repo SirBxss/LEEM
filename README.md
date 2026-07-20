@@ -238,7 +238,7 @@ Missing current target dimensions are marginalized. A missing previous station v
 The third model follows Arnelid et al.'s RC-GAN: a separate one-layer noise LSTM,
 a deep condition LSTM, condition skip connections, and a recurrent conditional
 discriminator. LEEM adds target masks and padded-sequence loss masks while
-retaining full profile generation.
+retaining full-profile generation.
 
 ```python
 from lane_error_modeling.models import RCGANConfig, RecurrentConditionalGAN
@@ -256,10 +256,11 @@ model.save("outputs/models/rcgan_model.npz")
 ```
 
 RC-GAN has no tractable normalized likelihood. Declared learning-rate/seed
-candidates are first checked by a validation-only conditional-diversity guard,
-then selected by physical-unit, dimension-normalized Energy Score. See [Recurrent
-conditional GAN](docs/recurrent_conditional_gan.md) for the architecture,
-objectives, paper fidelity, LEEM adaptations, and experiment protocol.
+candidates are first checked by validation-only diversity, optimization,
+discriminator, interval-coverage, and tail guards, then selected by physical-unit,
+dimension-normalized Energy Score. See [Recurrent conditional
+GAN](docs/recurrent_conditional_gan.md) for the architecture, objectives, paper
+fidelity, LEEM adaptations, and experiment protocol.
 
 ## Common evaluation and model experiments
 
@@ -322,10 +323,22 @@ python scripts/run_rcgan_experiment.py \
   --output outputs/experiments/rcgan_pilot
 ```
 
-Only proceed when at least one candidate passes the predeclared diversity guard
-and the epoch history does not show non-finite losses or persistent gradient
-clipping. Freeze the learning rate selected by this pilot in the prototype
-configuration before running the longer two-restart, three-scenario experiment:
+Phase 7.1 ran successfully, but its selected model remained severely
+under-dispersed and its higher learning rates showed discriminator domination and
+persistent generator clipping. Reuse the existing pilot data for the stricter,
+paper-batch-size Phase 7.2 gate:
+
+```bash
+python scripts/run_rcgan_experiment.py \
+  --config configs/rcgan_experiment_pilot_v2.json \
+  --output results/synthetic/rcgan_pilot_v2
+```
+
+The runner persists all candidate histories and validation gate diagnostics. If
+all candidates fail, it writes a `stability_failed` manifest without opening the
+test split and exits with code 2. Only after Phase 7.2 passes should its selected
+learning rate be frozen in the prototype configuration and the longer
+two-restart, three-scenario experiment be run:
 
 ```bash
 python scripts/run_rcgan_experiment.py \
@@ -370,6 +383,8 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 - [Conditional multivariate Gaussian baseline](docs/conditional_multivariate_gaussian.md)
 - [Autoregressive input-output HMM](docs/autoregressive_input_output_hmm.md)
 - [Recurrent conditional GAN](docs/recurrent_conditional_gan.md)
+- [Phase 7.1 RC-GAN stability pilot](docs/phase7_1_rcgan_stability_pilot.md)
+- [Phase 7.2 RC-GAN stabilization gate](docs/phase7_2_rcgan_stabilization.md)
 - [Phase 6 AIOHMM smoke results](docs/phase6_smoke_results.md)
 - [Common evaluation and model experiment protocol](docs/evaluation_protocol.md)
 - [Phase 6.1 evaluation reporting and comparison](docs/phase6_1_evaluation_reporting.md)
