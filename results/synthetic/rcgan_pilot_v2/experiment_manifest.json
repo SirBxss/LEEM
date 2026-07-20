@@ -1,0 +1,94 @@
+{
+  "artifacts": [
+    {
+      "path": "experiment_config.json",
+      "sha256": "dfcaffe667797ccbd435b7248387b5b0deaef0ba60a2e3060c293a2ff6c972da",
+      "size_bytes": 1970
+    },
+    {
+      "path": "conditional_gaussian/standardizer.json",
+      "sha256": "d96a364c11e6715c67a3bb484f60fec238e040cb9d798d7ab23f2bc5e6be14f3",
+      "size_bytes": 2464
+    },
+    {
+      "path": "conditional_gaussian/evaluation_reference.json",
+      "sha256": "4930caef55d21aa2c260f550a66c67f4b011f9bb18f1e9864a2d696cb40c362a",
+      "size_bytes": 3342
+    },
+    {
+      "path": "conditional_gaussian/model_selection.json",
+      "sha256": "bff12b072b34fcb8b0580630af8e2bd559a5ca1835861c420189cc74ee83301d",
+      "size_bytes": 38440
+    },
+    {
+      "path": "conditional_gaussian/scenario_result.json",
+      "sha256": "0a32979bd9038c0de5a58c8d763e2ff781c8a76b48d83c95b6e639f08251bf54",
+      "size_bytes": 1198
+    }
+  ],
+  "created_at_utc": "2026-07-20T08:50:25.196263+00:00",
+  "experiment_name": "rcgan_conditional_gaussian_stability_pilot_v2",
+  "model_family": "recurrent_conditional_gan",
+  "paper_basis": {
+    "citation": "Arnelid, L. et al. (2019), Recurrent Conditional Generative Adversarial Networks for Autonomous Driving Sensor Modelling",
+    "doi": "10.1109/ITSC.2019.8916999"
+  },
+  "scenarios": {
+    "conditional_gaussian": {
+      "artifacts": [
+        {
+          "path": "conditional_gaussian/standardizer.json",
+          "sha256": "d96a364c11e6715c67a3bb484f60fec238e040cb9d798d7ab23f2bc5e6be14f3",
+          "size_bytes": 2464
+        },
+        {
+          "path": "conditional_gaussian/evaluation_reference.json",
+          "sha256": "4930caef55d21aa2c260f550a66c67f4b011f9bb18f1e9864a2d696cb40c362a",
+          "size_bytes": 3342
+        },
+        {
+          "path": "conditional_gaussian/model_selection.json",
+          "sha256": "bff12b072b34fcb8b0580630af8e2bd559a5ca1835861c420189cc74ee83301d",
+          "size_bytes": 38440
+        },
+        {
+          "path": "conditional_gaussian/scenario_result.json",
+          "sha256": "0a32979bd9038c0de5a58c8d763e2ff781c8a76b48d83c95b6e639f08251bf54",
+          "size_bytes": 1198
+        }
+      ],
+      "selected_candidate_index": null,
+      "selected_config": null,
+      "status": "stability_failed",
+      "test_data_accessed": false,
+      "validation_selection_metric": null,
+      "validation_stability_gate": null
+    }
+  },
+  "schema_version": "1.0.0",
+  "scientific_scope": "synthetic capability evaluation only; scenarios are not pooled into a single final leaderboard",
+  "source_configuration": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/configs/rcgan_experiment_pilot_v2.json",
+    "sha256": "52afcda8df939ef7200160d9e3ce8d6f31687de80fcb1c2f525d21f216c5464c"
+  },
+  "source_dataset_manifest": {
+    "path": "C:/Users/q679381/PycharmProjects/LEEM/outputs/synthetic_rcgan_pilot/manifest.json",
+    "sha256": "6c2e804044fc1ed73890c26a5484aa98f0aa03bdf619eddc28bec30d91e17f7c"
+  },
+  "stability_protocol": {
+    "additional_checks": {
+      "interval_level": 0.9,
+      "late_epoch_count": 3,
+      "maximum_discriminator_probability_gap": 0.75,
+      "maximum_generator_clipped_fraction": 0.5,
+      "minimum_interval_coverage_fraction_of_reference": 0.5,
+      "minimum_tail_exceedance_fraction_of_observed": 0.2,
+      "tail_probability": 0.95
+    },
+    "interpretation": "validation-only engineering guards against severe under-dispersion, persistent clipping, discriminator domination, poor interval coverage, and missing tails; these are not common leaderboard metrics or claims of calibration",
+    "metric": "generated_to_observed_std_ratio",
+    "minimum_validation_ratio": 0.1,
+    "test_data_used_for_selection": false
+  },
+  "status": "stability_failed"
+}

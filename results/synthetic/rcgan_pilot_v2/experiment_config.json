@@ -1,0 +1,76 @@
+{
+  "create_plots": true,
+  "dataset_root": "outputs/synthetic_rcgan_pilot",
+  "evaluation": {
+    "crps_chunk_size": 2048,
+    "energy_pair_count": 256,
+    "histogram_bin_count": 50,
+    "histogram_clip_quantiles": [
+      0.001,
+      0.999
+    ],
+    "interval_levels": [
+      0.5,
+      0.9,
+      0.95
+    ],
+    "max_dependence_frames": 5000,
+    "max_dependence_samples": 16,
+    "max_distribution_values": 50000,
+    "max_energy_frames": 1000,
+    "metric_seed": 20260714,
+    "tail_probabilities": [
+      0.95,
+      0.99
+    ]
+  },
+  "experiment_name": "rcgan_conditional_gaussian_stability_pilot_v2",
+  "minimum_validation_diversity_ratio": 0.1,
+  "rcgan_search": {
+    "adam_beta1": 0.5,
+    "adam_beta2": 0.999,
+    "batch_size": 1,
+    "context_hidden_size": 64,
+    "context_layers": 2,
+    "dense_hidden_size": 64,
+    "device": "cpu",
+    "diagnostic_sample_count": 16,
+    "discriminator_dropout": 0.05,
+    "discriminator_hidden_size": 64,
+    "discriminator_layers": 2,
+    "discriminator_steps": 1,
+    "epochs": 4,
+    "generator_steps": 1,
+    "gradient_clip_norm": 1.0,
+    "initialization_seeds": [
+      20260717
+    ],
+    "latent_size": 32,
+    "leaky_relu_slope": 0.2,
+    "learning_rate": 1e-05,
+    "learning_rate_candidates": [
+      1e-05,
+      3e-05,
+      5e-05
+    ],
+    "noise_hidden_size": 64,
+    "sample_batch_size": 16
+  },
+  "sample_count": 64,
+  "sample_seed": 20260725,
+  "scenarios": [
+    "conditional_gaussian"
+  ],
+  "schema_version": "1.0.0",
+  "selection_sample_count": 64,
+  "selection_sample_seed": 20260724,
+  "stability_checks": {
+    "interval_level": 0.9,
+    "late_epoch_count": 3,
+    "maximum_discriminator_probability_gap": 0.75,
+    "maximum_generator_clipped_fraction": 0.5,
+    "minimum_interval_coverage_fraction_of_reference": 0.5,
+    "minimum_tail_exceedance_fraction_of_observed": 0.2,
+    "tail_probability": 0.95
+  }
+}

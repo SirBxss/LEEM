@@ -1,0 +1,793 @@
+{
+  "candidate_status_counts": {
+    "failed": 0,
+    "passed": 0,
+    "rejected": 3
+  },
+  "candidates": [
+    {
+      "candidate_index": 0,
+      "config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 1,
+        "context_hidden_size": 64,
+        "context_layers": 2,
+        "dense_hidden_size": 64,
+        "device": "cpu",
+        "diagnostic_sample_count": 16,
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 64,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 4,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 32,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 1e-05,
+        "noise_hidden_size": 64,
+        "sample_batch_size": 16
+      },
+      "fit_report": {
+        "metrics": {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.07487653635310018,
+          "generated_to_observed_std_ratio": 0.07407488402741695,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.4662041560513899,
+          "train_discriminator_loss": 1.3715290864929557,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.17342426104005426,
+          "train_generator_loss": 0.7734933383762836,
+          "validation_discriminator_fake_probability": 0.4724513366818428,
+          "validation_discriminator_loss": 1.3679549098014832,
+          "validation_discriminator_real_probability": 0.49131371080875397,
+          "validation_generator_loss": 0.7595630791038275
+        },
+        "model_name": "recurrent_conditional_gan",
+        "train_sequence_count": 128,
+        "validation_sequence_count": 32,
+        "warnings": [
+          "generated conditional diversity is below 10% of observed target variability; inspect calibration and tails before a longer run"
+        ]
+      },
+      "selection_metric": "dimension_normalized_energy_score_m",
+      "selection_metric_value": 0.05561219705354714,
+      "selection_sample_count": 64,
+      "selection_sample_seed": 20260724,
+      "stability_gate": {
+        "checks": {
+          "conditional_diversity": {
+            "enabled": true,
+            "metric": "generated_to_observed_std_ratio",
+            "minimum": 0.1,
+            "passed": false,
+            "value": 0.07407488402741695
+          },
+          "interval_coverage": {
+            "enabled": true,
+            "metric": "validation_0.90_coverage_fraction_of_finite_ensemble_reference",
+            "minimum": 0.5,
+            "passed": false,
+            "value": 0.1080314769485445
+          },
+          "late_discriminator_separation": {
+            "enabled": true,
+            "maximum": 0.75,
+            "metric": "mean_late_discriminator_probability_gap",
+            "passed": true,
+            "value": 0.013157952887316526
+          },
+          "late_generator_gradient_clipping": {
+            "enabled": true,
+            "maximum": 0.5,
+            "metric": "mean_late_generator_gradient_clipped_fraction",
+            "passed": true,
+            "value": 0.0
+          },
+          "tail_exceedance": {
+            "enabled": true,
+            "metric": "validation_generated_q95_exceedance_fraction_of_observed",
+            "minimum": 0.2,
+            "passed": false,
+            "value": 0.0
+          }
+        },
+        "enabled": true,
+        "interpretation": "validation-only engineering guards against under-dispersion, unstable optimization, discriminator domination, poor interval coverage, and missing tails; passing candidates are ranked only by Energy Score",
+        "late_epoch_count": 3,
+        "late_validation_discriminator_fake_probability": 0.48076964914798737,
+        "late_validation_discriminator_real_probability": 0.4939276020353039,
+        "metric": "generated_to_observed_std_ratio",
+        "minimum": 0.1,
+        "passed": false,
+        "rejection_reasons": [
+          "conditional_diversity",
+          "interval_coverage",
+          "tail_exceedance"
+        ],
+        "validation_generated_tail_exceedance": 0.0,
+        "validation_interval_empirical_coverage": 0.0942366883535765,
+        "validation_interval_reference_coverage": 0.8723076923076922,
+        "validation_observed_tail_exceedance": 0.05468,
+        "value": 0.07407488402741695
+      },
+      "status": "rejected",
+      "training_history": [
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 1.0,
+          "generated_mean_standard_deviation_standardized": 0.07514891193902508,
+          "generated_to_observed_std_ratio": 0.07434434347255127,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.046875,
+          "train_discriminator_gradient_norm": 0.4484257041476667,
+          "train_discriminator_loss": 1.398172240704298,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.12379639636492357,
+          "train_generator_loss": 0.741519229952246,
+          "validation_discriminator_fake_probability": 0.49399175494909286,
+          "validation_discriminator_loss": 1.4033345356583595,
+          "validation_discriminator_real_probability": 0.49880296271294355,
+          "validation_generator_loss": 0.7194472849369049
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 2.0,
+          "generated_mean_standard_deviation_standardized": 0.07514352691418093,
+          "generated_to_observed_std_ratio": 0.07433901610151832,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.44125005789101124,
+          "train_discriminator_loss": 1.3911269791424274,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.13431832293281332,
+          "train_generator_loss": 0.7505851592868567,
+          "validation_discriminator_fake_probability": 0.48812128603458405,
+          "validation_discriminator_loss": 1.3936105780303478,
+          "validation_discriminator_real_probability": 0.496362597681582,
+          "validation_generator_loss": 0.7298567350953817
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 3.0,
+          "generated_mean_standard_deviation_standardized": 0.07498435074882691,
+          "generated_to_observed_std_ratio": 0.07418154412748196,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.4482486202614382,
+          "train_discriminator_loss": 1.3825266333296895,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.15035320696188137,
+          "train_generator_loss": 0.7613477180711925,
+          "validation_discriminator_fake_probability": 0.48173632472753525,
+          "validation_discriminator_loss": 1.382869902998209,
+          "validation_discriminator_real_probability": 0.4941064976155758,
+          "validation_generator_loss": 0.7415559701621532
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.07487653635310018,
+          "generated_to_observed_std_ratio": 0.07407488402741695,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.4662041560513899,
+          "train_discriminator_loss": 1.3715290864929557,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.17342426104005426,
+          "train_generator_loss": 0.7734933383762836,
+          "validation_discriminator_fake_probability": 0.4724513366818428,
+          "validation_discriminator_loss": 1.3679549098014832,
+          "validation_discriminator_real_probability": 0.49131371080875397,
+          "validation_generator_loss": 0.7595630791038275
+        }
+      ],
+      "validation_evaluation": {
+        "global_metrics": {
+          "abs_exceedance_error_q95": 0.05468,
+          "abs_exceedance_error_q99": 0.01096,
+          "abs_quantile_error_q95_m": 0.09824314378201959,
+          "abs_quantile_error_q99_m": 0.14836887247860464,
+          "crps_m": 0.041343397217402975,
+          "dimension_normalized_energy_score_m": 0.05561219705354714,
+          "energy_score_m": 0.25152751250793876,
+          "error_jensen_shannon_distance": 0.4994796104655043,
+          "first_difference_jensen_shannon_distance": 0.7309387550229992,
+          "generated_abs_exceedance_q95": 0.0,
+          "generated_abs_exceedance_q99": 0.0,
+          "generated_abs_q95_m": 0.039914419874548905,
+          "generated_abs_q99_m": 0.05673823542892935,
+          "observed_abs_exceedance_q95": 0.05468,
+          "observed_abs_exceedance_q99": 0.01096,
+          "observed_abs_q95_m": 0.1381575636565685,
+          "observed_abs_q99_m": 0.20510710790753398,
+          "predictive_mean_mae_m": 0.043549314436371236,
+          "predictive_mean_rmse_m": 0.06260387783390159,
+          "residual_lag_one_correlation_mae": 0.3770398325903848,
+          "residual_spatial_correlation_rmse": 0.44828236289854984
+        },
+        "interval_metrics": {
+          "0.50": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 16,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.5076923076923077,
+              "central_rank_upper_1_based": 49,
+              "empirical_minus_linear_uniform_reference": -0.4445099604304868,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.4846153846153846,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.0401054241848978,
+            "global_mean_width_m": 0.005548933590273439,
+            "nominal_coverage": 0.5
+          },
+          "0.90": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 3,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9076923076923077,
+              "central_rank_upper_1_based": 62,
+              "empirical_minus_linear_uniform_reference": -0.7780710039541158,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.8723076923076922,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.0942366883535765,
+            "global_mean_width_m": 0.01319860904785361,
+            "nominal_coverage": 0.9
+          },
+          "0.95": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 1,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9538461538461539,
+              "central_rank_upper_1_based": 63,
+              "empirical_minus_linear_uniform_reference": -0.809797374603206,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.9207692307692307,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.11097185616602466,
+            "global_mean_width_m": 0.01545558894031277,
+            "nominal_coverage": 0.95
+          }
+        }
+      }
+    },
+    {
+      "candidate_index": 1,
+      "config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 1,
+        "context_hidden_size": 64,
+        "context_layers": 2,
+        "dense_hidden_size": 64,
+        "device": "cpu",
+        "diagnostic_sample_count": 16,
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 64,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 4,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 32,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 3e-05,
+        "noise_hidden_size": 64,
+        "sample_batch_size": 16
+      },
+      "fit_report": {
+        "metrics": {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.07855884393035727,
+          "generated_to_observed_std_ratio": 0.07771776763320093,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.984375,
+          "train_discriminator_gradient_norm": 5.947406883351505,
+          "train_discriminator_loss": 1.0754682132974267,
+          "train_generator_gradient_clipped_fraction": 0.96875,
+          "train_generator_gradient_norm": 3.0130256463307887,
+          "train_generator_loss": 1.1173671169672161,
+          "validation_discriminator_fake_probability": 0.44394145626574755,
+          "validation_discriminator_loss": 1.1856845002621412,
+          "validation_discriminator_real_probability": 0.5966506851837039,
+          "validation_generator_loss": 0.8975792098790407
+        },
+        "model_name": "recurrent_conditional_gan",
+        "train_sequence_count": 128,
+        "validation_sequence_count": 32,
+        "warnings": [
+          "generated conditional diversity is below 10% of observed target variability; inspect calibration and tails before a longer run"
+        ]
+      },
+      "selection_metric": "dimension_normalized_energy_score_m",
+      "selection_metric_value": 0.06533333579051541,
+      "selection_sample_count": 64,
+      "selection_sample_seed": 20260724,
+      "stability_gate": {
+        "checks": {
+          "conditional_diversity": {
+            "enabled": true,
+            "metric": "generated_to_observed_std_ratio",
+            "minimum": 0.1,
+            "passed": false,
+            "value": 0.07771776763320093
+          },
+          "interval_coverage": {
+            "enabled": true,
+            "metric": "validation_0.90_coverage_fraction_of_finite_ensemble_reference",
+            "minimum": 0.5,
+            "passed": false,
+            "value": 0.09850239498026882
+          },
+          "late_discriminator_separation": {
+            "enabled": true,
+            "maximum": 0.75,
+            "metric": "mean_late_discriminator_probability_gap",
+            "passed": true,
+            "value": 0.11823949962854391
+          },
+          "late_generator_gradient_clipping": {
+            "enabled": true,
+            "maximum": 0.5,
+            "metric": "mean_late_generator_gradient_clipped_fraction",
+            "passed": true,
+            "value": 0.3645833333333333
+          },
+          "tail_exceedance": {
+            "enabled": true,
+            "metric": "validation_generated_q95_exceedance_fraction_of_observed",
+            "minimum": 0.2,
+            "passed": true,
+            "value": 0.457205559619605
+          }
+        },
+        "enabled": true,
+        "interpretation": "validation-only engineering guards against under-dispersion, unstable optimization, discriminator domination, poor interval coverage, and missing tails; passing candidates are ranked only by Energy Score",
+        "late_epoch_count": 3,
+        "late_validation_discriminator_fake_probability": 0.43057879836608964,
+        "late_validation_discriminator_real_probability": 0.5488182979946336,
+        "metric": "generated_to_observed_std_ratio",
+        "minimum": 0.1,
+        "passed": false,
+        "rejection_reasons": [
+          "conditional_diversity",
+          "interval_coverage"
+        ],
+        "validation_generated_tail_exceedance": 0.025,
+        "validation_interval_empirical_coverage": 0.0859243968520191,
+        "validation_interval_reference_coverage": 0.8723076923076922,
+        "validation_observed_tail_exceedance": 0.05468,
+        "value": 0.07771776763320093
+      },
+      "status": "rejected",
+      "training_history": [
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 1.0,
+          "generated_mean_standard_deviation_standardized": 0.07502056734700382,
+          "generated_to_observed_std_ratio": 0.07421737297908872,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.44752285396680236,
+          "train_discriminator_loss": 1.3895249152556062,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.13962083595106378,
+          "train_generator_loss": 0.7504198299720883,
+          "validation_discriminator_fake_probability": 0.4792179772630334,
+          "validation_discriminator_loss": 1.3811671733856201,
+          "validation_discriminator_real_probability": 0.492280007340014,
+          "validation_generator_loss": 0.7465762495994568
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 2.0,
+          "generated_mean_standard_deviation_standardized": 0.07523090026406623,
+          "generated_to_observed_std_ratio": 0.0744254540041654,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.5168100090231746,
+          "train_discriminator_loss": 1.3530710563063622,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.22123989067040384,
+          "train_generator_loss": 0.7978325369767845,
+          "validation_discriminator_fake_probability": 0.44917653128504753,
+          "validation_discriminator_loss": 1.3191761299967766,
+          "validation_discriminator_real_probability": 0.4923095731064677,
+          "validation_generator_loss": 0.8085246328264475
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 3.0,
+          "generated_mean_standard_deviation_standardized": 0.07689549938454802,
+          "generated_to_observed_std_ratio": 0.0760722313900791,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.5703125,
+          "train_discriminator_gradient_norm": 1.2636796722654253,
+          "train_discriminator_loss": 1.2342821406200528,
+          "train_generator_gradient_clipped_fraction": 0.125,
+          "train_generator_gradient_norm": 0.6216141151962802,
+          "train_generator_loss": 0.9250293709337711,
+          "validation_discriminator_fake_probability": 0.3986184075474739,
+          "validation_discriminator_loss": 1.1243331767618656,
+          "validation_discriminator_real_probability": 0.5574946356937289,
+          "validation_generator_loss": 0.9590110350400209
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.07855884393035727,
+          "generated_to_observed_std_ratio": 0.07771776763320093,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.984375,
+          "train_discriminator_gradient_norm": 5.947406883351505,
+          "train_discriminator_loss": 1.0754682132974267,
+          "train_generator_gradient_clipped_fraction": 0.96875,
+          "train_generator_gradient_norm": 3.0130256463307887,
+          "train_generator_loss": 1.1173671169672161,
+          "validation_discriminator_fake_probability": 0.44394145626574755,
+          "validation_discriminator_loss": 1.1856845002621412,
+          "validation_discriminator_real_probability": 0.5966506851837039,
+          "validation_generator_loss": 0.8975792098790407
+        }
+      ],
+      "validation_evaluation": {
+        "global_metrics": {
+          "abs_exceedance_error_q95": 0.029679999999999998,
+          "abs_exceedance_error_q99": 0.0060799999999999995,
+          "abs_quantile_error_q95_m": 0.03851747214794174,
+          "abs_quantile_error_q99_m": 0.016896544694900817,
+          "crps_m": 0.04781809587996741,
+          "dimension_normalized_energy_score_m": 0.06533333579051541,
+          "energy_score_m": 0.2959983733391638,
+          "error_jensen_shannon_distance": 0.292519848775747,
+          "first_difference_jensen_shannon_distance": 0.7297640815221862,
+          "generated_abs_exceedance_q95": 0.025,
+          "generated_abs_exceedance_q99": 0.00488,
+          "generated_abs_q95_m": 0.09964009150862677,
+          "generated_abs_q99_m": 0.18821056321263316,
+          "observed_abs_exceedance_q95": 0.05468,
+          "observed_abs_exceedance_q99": 0.01096,
+          "observed_abs_q95_m": 0.1381575636565685,
+          "observed_abs_q99_m": 0.20510710790753398,
+          "predictive_mean_mae_m": 0.05013109773793606,
+          "predictive_mean_rmse_m": 0.07213270618340963,
+          "residual_lag_one_correlation_mae": 0.3582054898374972,
+          "residual_spatial_correlation_rmse": 0.46054596572018064
+        },
+        "interval_metrics": {
+          "0.50": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 16,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.5076923076923077,
+              "central_rank_upper_1_based": 49,
+              "empirical_minus_linear_uniform_reference": -0.4480855359322654,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.4846153846153846,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.03652984868311923,
+            "global_mean_width_m": 0.005797585760902751,
+            "nominal_coverage": 0.5
+          },
+          "0.90": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 3,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9076923076923077,
+              "central_rank_upper_1_based": 62,
+              "empirical_minus_linear_uniform_reference": -0.7863832954556731,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.8723076923076922,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.0859243968520191,
+            "global_mean_width_m": 0.013778952969621895,
+            "nominal_coverage": 0.9
+          },
+          "0.95": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 1,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9538461538461539,
+              "central_rank_upper_1_based": 63,
+              "empirical_minus_linear_uniform_reference": -0.8207452707272085,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.9207692307692307,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.10002396004202223,
+            "global_mean_width_m": 0.016118122355153232,
+            "nominal_coverage": 0.95
+          }
+        }
+      }
+    },
+    {
+      "candidate_index": 2,
+      "config": {
+        "adam_beta1": 0.5,
+        "adam_beta2": 0.999,
+        "batch_size": 1,
+        "context_hidden_size": 64,
+        "context_layers": 2,
+        "dense_hidden_size": 64,
+        "device": "cpu",
+        "diagnostic_sample_count": 16,
+        "discriminator_dropout": 0.05,
+        "discriminator_hidden_size": 64,
+        "discriminator_layers": 2,
+        "discriminator_steps": 1,
+        "epochs": 4,
+        "generator_steps": 1,
+        "gradient_clip_norm": 1.0,
+        "initialization_seed": 20260717,
+        "latent_size": 32,
+        "leaky_relu_slope": 0.2,
+        "learning_rate": 5e-05,
+        "noise_hidden_size": 64,
+        "sample_batch_size": 16
+      },
+      "fit_report": {
+        "metrics": {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.09549219095015066,
+          "generated_to_observed_std_ratio": 0.09446982078336334,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.296875,
+          "train_discriminator_gradient_norm": 2.145980915054679,
+          "train_discriminator_loss": 0.18281684297835454,
+          "train_generator_gradient_clipped_fraction": 1.0,
+          "train_generator_gradient_norm": 4.377701118588448,
+          "train_generator_loss": 3.96978846937418,
+          "validation_discriminator_fake_probability": 0.03972223761957139,
+          "validation_discriminator_loss": 0.327629734063521,
+          "validation_discriminator_real_probability": 0.9091456402093172,
+          "validation_generator_loss": 4.723025277256966
+        },
+        "model_name": "recurrent_conditional_gan",
+        "train_sequence_count": 128,
+        "validation_sequence_count": 32,
+        "warnings": [
+          "generated conditional diversity is below 10% of observed target variability; inspect calibration and tails before a longer run"
+        ]
+      },
+      "selection_metric": "dimension_normalized_energy_score_m",
+      "selection_metric_value": 0.16593941381884236,
+      "selection_sample_count": 64,
+      "selection_sample_seed": 20260724,
+      "stability_gate": {
+        "checks": {
+          "conditional_diversity": {
+            "enabled": true,
+            "metric": "generated_to_observed_std_ratio",
+            "minimum": 0.1,
+            "passed": false,
+            "value": 0.09446982078336334
+          },
+          "interval_coverage": {
+            "enabled": true,
+            "metric": "validation_0.90_coverage_fraction_of_finite_ensemble_reference",
+            "minimum": 0.5,
+            "passed": false,
+            "value": 0.035538616121152326
+          },
+          "late_discriminator_separation": {
+            "enabled": true,
+            "maximum": 0.75,
+            "metric": "mean_late_discriminator_probability_gap",
+            "passed": true,
+            "value": 0.6015133402543142
+          },
+          "late_generator_gradient_clipping": {
+            "enabled": true,
+            "maximum": 0.5,
+            "metric": "mean_late_generator_gradient_clipped_fraction",
+            "passed": false,
+            "value": 0.7473958333333334
+          },
+          "tail_exceedance": {
+            "enabled": true,
+            "metric": "validation_generated_q95_exceedance_fraction_of_observed",
+            "minimum": 0.2,
+            "passed": true,
+            "value": 7.33138258961229
+          }
+        },
+        "enabled": true,
+        "interpretation": "validation-only engineering guards against under-dispersion, unstable optimization, discriminator domination, poor interval coverage, and missing tails; passing candidates are ranked only by Energy Score",
+        "late_epoch_count": 3,
+        "late_validation_discriminator_fake_probability": 0.1813821819378063,
+        "late_validation_discriminator_real_probability": 0.7828955221921206,
+        "metric": "generated_to_observed_std_ratio",
+        "minimum": 0.1,
+        "passed": false,
+        "rejection_reasons": [
+          "conditional_diversity",
+          "late_generator_gradient_clipping",
+          "interval_coverage"
+        ],
+        "validation_generated_tail_exceedance": 0.40088,
+        "validation_interval_empirical_coverage": 0.031000608216451335,
+        "validation_interval_reference_coverage": 0.8723076923076922,
+        "validation_observed_tail_exceedance": 0.05468,
+        "value": 0.09446982078336334
+      },
+      "status": "rejected",
+      "training_history": [
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 1.0,
+          "generated_mean_standard_deviation_standardized": 0.07510571545095851,
+          "generated_to_observed_std_ratio": 0.07430160946000516,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.0390625,
+          "train_discriminator_gradient_norm": 0.4637975184014067,
+          "train_discriminator_loss": 1.378010488115251,
+          "train_generator_gradient_clipped_fraction": 0.0,
+          "train_generator_gradient_norm": 0.1654824449797161,
+          "train_generator_loss": 0.7644959860481322,
+          "validation_discriminator_fake_probability": 0.45811372995376587,
+          "validation_discriminator_loss": 1.3460551612079144,
+          "validation_discriminator_real_probability": 0.4875761875882745,
+          "validation_generator_loss": 0.7890983112156391
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 2.0,
+          "generated_mean_standard_deviation_standardized": 0.0778735016503037,
+          "generated_to_observed_std_ratio": 0.07703976284843565,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.5703125,
+          "train_discriminator_gradient_norm": 1.5878574196249247,
+          "train_discriminator_loss": 1.2275987095199525,
+          "train_generator_gradient_clipped_fraction": 0.25,
+          "train_generator_gradient_norm": 0.7746686529135332,
+          "train_generator_loss": 0.9366288799792528,
+          "validation_discriminator_fake_probability": 0.38650741800665855,
+          "validation_discriminator_loss": 1.0681914053857327,
+          "validation_discriminator_real_probability": 0.584867887198925,
+          "validation_generator_loss": 1.0169033072888851
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 3.0,
+          "generated_mean_standard_deviation_standardized": 0.08207198571057615,
+          "generated_to_observed_std_ratio": 0.08119329658548015,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 1.0,
+          "train_discriminator_gradient_norm": 8.815978051163256,
+          "train_discriminator_loss": 0.9511973697226495,
+          "train_generator_gradient_clipped_fraction": 0.9921875,
+          "train_generator_gradient_norm": 5.440402831649408,
+          "train_generator_loss": 1.3468678777571768,
+          "validation_discriminator_fake_probability": 0.11791689018718898,
+          "validation_discriminator_loss": 0.3145631975494325,
+          "validation_discriminator_real_probability": 0.8546730391681194,
+          "validation_generator_loss": 2.6578413397073746
+        },
+        {
+          "diagnostic_sample_count": 16.0,
+          "epoch": 4.0,
+          "generated_mean_standard_deviation_standardized": 0.09549219095015066,
+          "generated_to_observed_std_ratio": 0.09446982078336334,
+          "observed_standard_deviation_standardized": 1.0108221880629138,
+          "train_discriminator_gradient_clipped_fraction": 0.296875,
+          "train_discriminator_gradient_norm": 2.145980915054679,
+          "train_discriminator_loss": 0.18281684297835454,
+          "train_generator_gradient_clipped_fraction": 1.0,
+          "train_generator_gradient_norm": 4.377701118588448,
+          "train_generator_loss": 3.96978846937418,
+          "validation_discriminator_fake_probability": 0.03972223761957139,
+          "validation_discriminator_loss": 0.327629734063521,
+          "validation_discriminator_real_probability": 0.9091456402093172,
+          "validation_generator_loss": 4.723025277256966
+        }
+      ],
+      "validation_evaluation": {
+        "global_metrics": {
+          "abs_exceedance_error_q95": 0.3462,
+          "abs_exceedance_error_q99": 0.1874,
+          "abs_quantile_error_q95_m": 0.16348237916827163,
+          "abs_quantile_error_q99_m": 0.25105919405817956,
+          "crps_m": 0.12542964090286074,
+          "dimension_normalized_energy_score_m": 0.16593941381884236,
+          "energy_score_m": 0.750710051779111,
+          "error_jensen_shannon_distance": 0.48666790684749167,
+          "first_difference_jensen_shannon_distance": 0.6764403834356054,
+          "generated_abs_exceedance_q95": 0.40088,
+          "generated_abs_exceedance_q99": 0.19836,
+          "generated_abs_q95_m": 0.30163994282484013,
+          "generated_abs_q99_m": 0.45616630196571356,
+          "observed_abs_exceedance_q95": 0.05468,
+          "observed_abs_exceedance_q99": 0.01096,
+          "observed_abs_q95_m": 0.1381575636565685,
+          "observed_abs_q99_m": 0.20510710790753398,
+          "predictive_mean_mae_m": 0.12835099696937535,
+          "predictive_mean_rmse_m": 0.17337502422662354,
+          "residual_lag_one_correlation_mae": 0.26168620826647554,
+          "residual_spatial_correlation_rmse": 0.3891656162768077
+        },
+        "interval_metrics": {
+          "0.50": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 16,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.5076923076923077,
+              "central_rank_upper_1_based": 49,
+              "empirical_minus_linear_uniform_reference": -0.47149265390782613,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.4846153846153846,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.013122730707558471,
+            "global_mean_width_m": 0.00706782502324878,
+            "nominal_coverage": 0.5
+          },
+          "0.90": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 3,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9076923076923077,
+              "central_rank_upper_1_based": 62,
+              "empirical_minus_linear_uniform_reference": -0.8413070840912409,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.8723076923076922,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.031000608216451335,
+            "global_mean_width_m": 0.016758829941577215,
+            "nominal_coverage": 0.9
+          },
+          "0.95": {
+            "finite_ensemble": {
+              "central_rank_lower_1_based": 1,
+              "central_rank_meets_nominal_coverage": true,
+              "central_rank_reference_coverage": 0.9538461538461539,
+              "central_rank_upper_1_based": 63,
+              "empirical_minus_linear_uniform_reference": -0.8840182124674447,
+              "ensemble_sample_count": 64,
+              "interpretation": "finite-ensemble diagnostic only; final calibration conclusions require a larger predictive ensemble or a separately specified rank-based interval",
+              "linear_uniform_reference_coverage": 0.9207692307692307,
+              "quantile_method": "linear"
+            },
+            "global_empirical_coverage": 0.03675101830178595,
+            "global_mean_width_m": 0.01958124697675553,
+            "nominal_coverage": 0.95
+          }
+        }
+      }
+    }
+  ],
+  "interpretation": "sample-based proper score is used because RC-GAN has no tractable likelihood; declared learning-rate/seed candidates must pass every enabled validation-only stability check before Energy-Score ranking",
+  "lower_is_better": true,
+  "selected_candidate_index": null,
+  "selected_config": null,
+  "selection_metric": "dimension_normalized_energy_score_m",
+  "selection_metric_units": "metres per square-root observed dimension",
+  "selection_split": "validation",
+  "selection_status": "stability_failed",
+  "stability_gate": null,
+  "test_data_accessed": false,
+  "test_data_accessed_during_selection": false
+}
