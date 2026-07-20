@@ -325,8 +325,8 @@ python scripts/run_rcgan_experiment.py \
 
 Phase 7.1 ran successfully, but its selected model remained severely
 under-dispersed and its higher learning rates showed discriminator domination and
-persistent generator clipping. Reuse the existing pilot data for the stricter,
-paper-batch-size Phase 7.2 gate:
+persistent generator clipping. Phase 7.2 therefore reused the existing pilot
+data for a stricter paper-batch-size gate:
 
 ```bash
 python scripts/run_rcgan_experiment.py \
@@ -334,17 +334,32 @@ python scripts/run_rcgan_experiment.py \
   --output results/synthetic/rcgan_pilot_v2
 ```
 
-The runner persists all candidate histories and validation gate diagnostics. If
-all candidates fail, it writes a `stability_failed` manifest without opening the
-test split and exits with code 2. Only after Phase 7.2 passes should its selected
-learning rate be frozen in the prototype configuration and the longer
-two-restart, three-scenario experiment be run:
+Phase 7.2 finished with `status=stability_failed`: all three shared-rate
+candidates were rejected and the test split remained unopened. Run the final
+bounded, architecture-preserving Phase 7.3 micro-pilot. It holds the
+discriminator rate at $10^{-5}$ while testing generator rates of
+$3\times10^{-5}$ and $5\times10^{-5}$:
+
+```bash
+python scripts/run_rcgan_experiment.py \
+  --config configs/rcgan_experiment_pilot_v3.json \
+  --output results/synthetic/rcgan_pilot_v3
+```
+
+The runner persists every candidate history and validation gate diagnostic. A
+failed gate writes a `stability_failed` manifest without opening the test split
+and exits with code 2. If Phase 7.3 passes, freeze its selected optimizer rates
+before the longer two-restart, three-scenario experiment:
 
 ```bash
 python scripts/run_rcgan_experiment.py \
   --config configs/rcgan_experiment_prototype.json \
   --output outputs/experiments/rcgan_prototype
 ```
+
+If both Phase 7.3 candidates fail, stop synthetic RC-GAN tuning and retain the
+controlled negative result for the thesis; do not weaken the gates or run the
+prototype.
 
 Existing persisted results can be upgraded with finite-ensemble interval
 metadata and compared without retraining either model:
@@ -385,6 +400,7 @@ The mathematical definitions, parameter choices, assumptions, validation protoco
 - [Recurrent conditional GAN](docs/recurrent_conditional_gan.md)
 - [Phase 7.1 RC-GAN stability pilot](docs/phase7_1_rcgan_stability_pilot.md)
 - [Phase 7.2 RC-GAN stabilization gate](docs/phase7_2_rcgan_stabilization.md)
+- [Phase 7.3 RC-GAN asymmetric-optimizer micro-pilot](docs/phase7_3_rcgan_asymmetric_optimizer.md)
 - [Phase 6 AIOHMM smoke results](docs/phase6_smoke_results.md)
 - [Common evaluation and model experiment protocol](docs/evaluation_protocol.md)
 - [Phase 6.1 evaluation reporting and comparison](docs/phase6_1_evaluation_reporting.md)

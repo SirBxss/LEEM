@@ -164,8 +164,9 @@ not opened until the restart is frozen.
 
 The paper used batch size one. The LEEM model default remains one. The Phase 7.1
 pilot and provisional prototype configuration used batch size four as a
-transparent runtime compromise, but Phase 7.2 restores batch size one. The final
-prototype configuration must be frozen from the Phase 7.2 decision before use.
+transparent runtime compromise, but Phases 7.2 and 7.3 restore batch size one.
+The final prototype configuration must be frozen from the Phase 7.3 decision
+before use.
 
 The smoke configuration is intentionally tiny: one epoch, small hidden layers,
 one restart, and a larger learning rate. It is a software gate only and must not
@@ -242,14 +243,24 @@ python scripts/run_rcgan_experiment.py `
   --output results/synthetic/rcgan_pilot_v2
 ```
 
-Phase 7.2 compares $10^{-5}$, $3\times10^{-5}$, and $5\times10^{-5}$ at the
-paper's batch size one. It requires conditional diversity, non-persistent
-generator clipping, no extreme discriminator separation, minimum validation
-interval coverage, and minimum validation tail exceedance. Every candidate's
-epoch history and validation metrics are persisted. If no candidate passes, the
-runner saves a `stability_failed` result without opening the test split.
+Phase 7.2 compared $10^{-5}$, $3\times10^{-5}$, and $5\times10^{-5}$ at the
+paper's batch size one. All three candidates failed: the lower rates remained
+conditionally under-dispersed, while the highest rate showed severe generator
+clipping and excessive tails. The runner persisted `status=stability_failed`
+without opening the test split.
 
-Only after Phase 7.2 passes should its selected learning rate and batch size be
+Phase 7.3 is the final bounded, architecture-preserving attempt. It fixes the
+discriminator rate at $10^{-5}$ and tests generator rates of
+$3\times10^{-5}$ and $5\times10^{-5}$, adds noise-path gradient diagnostics,
+checks the worst late epoch, and rejects both missing and explosive tails:
+
+```powershell
+python scripts/run_rcgan_experiment.py `
+  --config configs/rcgan_experiment_pilot_v3.json `
+  --output results/synthetic/rcgan_pilot_v3
+```
+
+Only if Phase 7.3 passes should its selected optimizer rates and batch size be
 frozen in `rcgan_experiment_prototype.json`. The currently committed prototype
 settings are provisional. Then run the prototype:
 
@@ -279,10 +290,10 @@ $$
 The numerator varies latent noise while holding conditions fixed. The denominator
 only makes the diagnostic scale-free. This ratio is an engineering collapse
 indicator, not a calibration metric and not part of the three-model leaderboard.
-Phase 7.2 rejects candidates below the predeclared threshold
+Phase 7.3 rejects candidates below the predeclared threshold
 $r_{\mathrm{div}}=0.10$ and applies the additional optimization, discriminator,
-coverage, and tail checks described in [Phase 7.2 RC-GAN
-stabilization](phase7_2_rcgan_stabilization.md). The smoke gate keeps all
+coverage, and two-sided tail checks described in [Phase 7.3 RC-GAN
+stabilization](phase7_3_rcgan_asymmetric_optimizer.md). The smoke gate keeps all
 rejections disabled because its tiny data and one epoch are not scientific.
 
 ## 5. Current status
@@ -303,7 +314,8 @@ Phase 7 implements:
 
 The automated smoke runner and complete unit suite pass. Phase 7.1 also ran to
 completion, but its result was not statistically ready for the prototype. Phase
-7.2 is now the required gate. Passing tests establish software correctness, not
+7.2 rejected every candidate without opening the test split. Phase 7.3 is now
+the final bounded gate. Passing tests establish software correctness, not
 statistical superiority or publication evidence.
 
 ## 6. Key takeaway
@@ -312,5 +324,6 @@ Phase 7 completes the planned three-model implementation without changing the
 frozen LEEM data or evaluation contract. The RC-GAN is faithful to the selected
 paper where the paper is explicit, and every necessary LEEM adaptation is visible
 in configuration, code, and documentation. The next scientific gate is Phase
-7.2—not the full prototype. The prototype and three-model comparison follow only
-if at least one predeclared stabilization candidate passes.
+7.3—not the full prototype. The prototype follows only if at least one
+predeclared Phase 7.3 candidate passes. If none passes, RC-GAN remains the third
+thesis model as a controlled negative result and synthetic tuning stops.

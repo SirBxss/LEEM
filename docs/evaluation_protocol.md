@@ -239,17 +239,18 @@ python scripts/run_aiohmm_experiment.py `
   --output outputs/experiments/aiohmm_prototype
 ```
 
-Run the RC-GAN prototype only after its PyTorch-enabled test suite, smoke
-experiment, and Phase 7.2 validation-only stabilization gate pass. Phase 7.2
-must select at least one candidate before the test split is opened:
+The RC-GAN prototype remains blocked. Phase 7.2 completed with every shared-rate
+candidate rejected and did not open the test split. Reuse the same data for the
+final Phase 7.3 asymmetric-optimizer gate:
 
 ```powershell
 python scripts/run_rcgan_experiment.py `
-  --config configs/rcgan_experiment_pilot_v2.json `
-  --output results/synthetic/rcgan_pilot_v2
+  --config configs/rcgan_experiment_pilot_v3.json `
+  --output results/synthetic/rcgan_pilot_v3
 ```
 
-Only then run:
+Only if Phase 7.3 selects at least one candidate may its frozen optimizer rates
+be transferred to the prototype configuration and the prototype be run:
 
 ```powershell
 python scripts/run_rcgan_experiment.py `
@@ -295,13 +296,15 @@ Phase 6 is complete when:
 
 RC-GAN initialization restarts are selected using validation physical-unit,
 dimension-normalized Energy Score because the implicit model has no tractable
-NLL. Before ranking, Phase 7.2 requires every candidate to pass the predeclared
-validation-only conditional-diversity, late generator-clipping, discriminator
-separation, interval-coverage, and tail-exceedance checks. Test archives remain
-unopened until a passing candidate is frozen. If all candidates fail, the runner
-persists their histories and validation diagnostics with status
-`stability_failed`, without a test evaluation. The final evaluator and frozen
-common metric definitions are unchanged across all three models.
+NLL. Phase 7.2 applied the predeclared validation-only conditional-diversity,
+late generator-clipping, discriminator-separation, interval-coverage, and
+tail-exceedance checks; all candidates failed. Phase 7.3 is the final bounded
+attempt and adds separate optimizer rates, worst-late-epoch guards, and a
+two-sided tail guard. Test archives remain unopened until a passing candidate is
+frozen. If all candidates fail, the runner persists their histories and
+validation diagnostics with status `stability_failed`, without a test
+evaluation. The final evaluator and frozen common metric definitions are
+unchanged across all three models.
 
 Phase 7 implementation is complete when the paper-based separate noise/context
 architecture, mask-aware variable-length training, deterministic sampling, safe
@@ -309,3 +312,7 @@ persistence, validation-only selection, held-out runner, and automated tests all
 pass. The longer prototype run is a subsequent scientific gate. Any genuinely
 necessary future common metric or protocol revision must be applied
 retrospectively to Gaussian, AIOHMM, and RC-GAN before final comparison.
+
+If Phase 7.3 fails, synthetic RC-GAN tuning stops. The failure is retained as a
+controlled result for the third thesis model; the validation gates are not
+weakened and the unopened test split is not inspected.

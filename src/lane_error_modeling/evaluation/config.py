@@ -448,6 +448,7 @@ class RCGANSearchSpace:
     epochs: int = 4
     batch_size: int = 1
     learning_rate: float = 1e-5
+    discriminator_learning_rate: float | None = None
     learning_rate_candidates: tuple[float, ...] = ()
     adam_beta1: float = 0.5
     adam_beta2: float = 0.999
@@ -530,11 +531,14 @@ class RCGANStabilityChecks:
 
     late_epoch_count: int = 3
     maximum_generator_clipped_fraction: float = 1.0
+    maximum_worst_late_generator_clipped_fraction: float = 1.0
     maximum_discriminator_probability_gap: float = 1.0
+    maximum_worst_late_discriminator_probability_gap: float = 1.0
     interval_level: float = 0.90
     minimum_interval_coverage_fraction_of_reference: float = 0.0
     tail_probability: float = 0.95
     minimum_tail_exceedance_fraction_of_observed: float = 0.0
+    maximum_tail_exceedance_fraction_of_observed: float | None = None
 
     def validate(self) -> None:
         if (
@@ -545,7 +549,9 @@ class RCGANStabilityChecks:
             raise ValueError("late_epoch_count must be a positive integer")
         for name in (
             "maximum_generator_clipped_fraction",
+            "maximum_worst_late_generator_clipped_fraction",
             "maximum_discriminator_probability_gap",
+            "maximum_worst_late_discriminator_probability_gap",
             "minimum_interval_coverage_fraction_of_reference",
             "minimum_tail_exceedance_fraction_of_observed",
         ):
@@ -557,6 +563,22 @@ class RCGANStabilityChecks:
                 or not 0.0 <= value <= 1.0
             ):
                 raise ValueError(f"{name} must lie in [0, 1]")
+        if self.maximum_tail_exceedance_fraction_of_observed is not None:
+            value = self.maximum_tail_exceedance_fraction_of_observed
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                or value <= 0.0
+            ):
+                raise ValueError(
+                    "maximum_tail_exceedance_fraction_of_observed must be null "
+                    "or a positive finite number"
+                )
+            if value < self.minimum_tail_exceedance_fraction_of_observed:
+                raise ValueError(
+                    "maximum tail exceedance fraction must not be below minimum"
+                )
         if not 0.0 < self.interval_level < 1.0:
             raise ValueError("interval_level must lie strictly inside (0, 1)")
         if not 0.5 < self.tail_probability < 1.0:
@@ -641,8 +663,12 @@ class RCGANExperimentConfig:
                 "stability interval_level must be present in evaluation interval_levels"
             )
         if (
-            self.stability_checks.minimum_tail_exceedance_fraction_of_observed
-            > 0.0
+            (
+                self.stability_checks.minimum_tail_exceedance_fraction_of_observed
+                > 0.0
+                or self.stability_checks.maximum_tail_exceedance_fraction_of_observed
+                is not None
+            )
             and self.stability_checks.tail_probability
             not in self.evaluation.tail_probabilities
         ):

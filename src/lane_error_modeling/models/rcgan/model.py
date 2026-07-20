@@ -42,7 +42,8 @@ from .architecture import (
 from .config import RCGANConfig
 
 
-RCGAN_MODEL_SCHEMA_VERSION = "1.0.0"
+RCGAN_MODEL_SCHEMA_VERSION = "1.1.0"
+SUPPORTED_RCGAN_MODEL_SCHEMA_VERSIONS = ("1.0.0", RCGAN_MODEL_SCHEMA_VERSION)
 LOW_DIVERSITY_RATIO_WARNING = 0.10
 SEVERE_DIVERSITY_RATIO_WARNING = 0.05
 
@@ -84,6 +85,16 @@ def _finite_scalar(value: Tensor, *, name: str) -> float:
     if not np.isfinite(result):
         raise RuntimeError(f"RC-GAN produced a non-finite {name}")
     return result
+
+
+def _parameter_gradient_norm(parameters, *, device: torch.device) -> Tensor:
+    """Return an L2 norm over the currently populated parameter gradients."""
+
+    squared_norm = torch.zeros((), dtype=torch.float32, device=device)
+    for parameter in parameters:
+        if parameter.grad is not None:
+            squared_norm += torch.sum(parameter.grad.detach() ** 2)
+    return torch.sqrt(squared_norm)
 
 
 class RecurrentConditionalGAN(ProbabilisticSequenceModel):
@@ -215,7 +226,7 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
         )
         discriminator_optimizer = torch.optim.Adam(
             discriminator.parameters(),
-            lr=self.config.learning_rate,
+            lr=self.config.effective_discriminator_learning_rate,
             betas=(self.config.adam_beta1, self.config.adam_beta2),
         )
         history: list[dict[str, float]] = []
@@ -227,6 +238,9 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
             discriminator_loss_sum = 0.0
             generator_gradient_norm_sum = 0.0
             discriminator_gradient_norm_sum = 0.0
+            generator_noise_gradient_norm_sum = 0.0
+            generator_context_gradient_norm_sum = 0.0
+            generator_head_gradient_norm_sum = 0.0
             generator_gradient_update_count = 0
             discriminator_gradient_update_count = 0
             generator_clipped_count = 0
@@ -294,6 +308,30 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                     )
                     _finite_scalar(latest_generator_loss, name="generator loss")
                     latest_generator_loss.backward()
+                    generator_noise_gradient_norm_sum += _finite_scalar(
+                        _parameter_gradient_norm(
+                            generator.noise_recurrent.parameters(),
+                            device=self._device,
+                        ),
+                        name="generator noise-path gradient norm",
+                    )
+                    generator_context_gradient_norm_sum += _finite_scalar(
+                        _parameter_gradient_norm(
+                            generator.context_recurrent.parameters(),
+                            device=self._device,
+                        ),
+                        name="generator context-path gradient norm",
+                    )
+                    generator_head_gradient_norm_sum += _finite_scalar(
+                        _parameter_gradient_norm(
+                            (
+                                *generator.dense.parameters(),
+                                *generator.output.parameters(),
+                            ),
+                            device=self._device,
+                        ),
+                        name="generator dense-head gradient norm",
+                    )
                     generator_gradient_norm = nn.utils.clip_grad_norm_(
                         generator.parameters(), self.config.gradient_clip_norm
                     )
@@ -328,6 +366,26 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                 ),
                 "train_generator_gradient_norm": (
                     generator_gradient_norm_sum / generator_gradient_update_count
+                ),
+                "train_generator_noise_gradient_norm": (
+                    generator_noise_gradient_norm_sum
+                    / generator_gradient_update_count
+                ),
+                "train_generator_context_gradient_norm": (
+                    generator_context_gradient_norm_sum
+                    / generator_gradient_update_count
+                ),
+                "train_generator_head_gradient_norm": (
+                    generator_head_gradient_norm_sum
+                    / generator_gradient_update_count
+                ),
+                "train_generator_noise_to_context_gradient_ratio": (
+                    generator_noise_gradient_norm_sum
+                    / max(generator_context_gradient_norm_sum, 1e-12)
+                ),
+                "generator_learning_rate": float(self.config.learning_rate),
+                "discriminator_learning_rate": (
+                    self.config.effective_discriminator_learning_rate
                 ),
                 "train_discriminator_gradient_clipped_fraction": (
                     discriminator_clipped_count
@@ -481,6 +539,10 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
         random.manual_seed(seed)
         generated_standard_deviation_sum = 0.0
         observed_value_count = 0
+        station_standard_deviation_sums = np.zeros(
+            dataset.n_stations, dtype=np.float64
+        )
+        station_observation_counts = np.zeros(dataset.n_stations, dtype=np.int64)
         with torch.no_grad():
             for batch in iter_sequence_batches(
                 dataset,
@@ -517,18 +579,62 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
                     torch.sum(pointwise_standard_deviation[observed]).cpu()
                 )
                 observed_value_count += int(torch.sum(observed).cpu())
+                station_standard_deviation_sums += (
+                    torch.sum(
+                        pointwise_standard_deviation * observed,
+                        dim=(0, 1),
+                    )
+                    .cpu()
+                    .numpy()
+                )
+                station_observation_counts += (
+                    torch.sum(observed, dim=(0, 1)).cpu().numpy()
+                )
         if observed_value_count == 0:
             raise ValueError("diagnostic data contain no observed target value")
         observed_values = np.asarray(
             dataset.errors[dataset.valid_mask], dtype=np.float64
         )
         observed_standard_deviation = float(np.std(observed_values))
-        if not np.isfinite(observed_standard_deviation) or observed_standard_deviation <= 0.0:
+        if (
+            not np.isfinite(observed_standard_deviation)
+            or observed_standard_deviation <= 0.0
+        ):
             raise ValueError(
                 "diagnostic target standard deviation must be finite and positive"
             )
         generated_standard_deviation = (
             generated_standard_deviation_sum / observed_value_count
+        )
+        station_observed_standard_deviations = np.full(
+            dataset.n_stations,
+            np.nan,
+            dtype=np.float64,
+        )
+        for station in range(dataset.n_stations):
+            station_values = dataset.errors[:, :, station][
+                dataset.valid_mask[:, :, station]
+            ]
+            if station_values.size:
+                station_observed_standard_deviations[station] = np.std(
+                    station_values
+                )
+        eligible_stations = (
+            (station_observation_counts > 0)
+            & np.isfinite(station_observed_standard_deviations)
+            & (station_observed_standard_deviations > 0.0)
+        )
+        if not np.any(eligible_stations):
+            raise ValueError("diagnostic data contain no variable observed station")
+        station_generated_standard_deviations = np.divide(
+            station_standard_deviation_sums,
+            station_observation_counts,
+            out=np.zeros_like(station_standard_deviation_sums),
+            where=station_observation_counts > 0,
+        )
+        station_diversity_ratios = (
+            station_generated_standard_deviations[eligible_stations]
+            / station_observed_standard_deviations[eligible_stations]
         )
         return {
             "diagnostic_sample_count": float(self.config.diagnostic_sample_count),
@@ -538,6 +644,15 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
             "observed_standard_deviation_standardized": observed_standard_deviation,
             "generated_to_observed_std_ratio": float(
                 generated_standard_deviation / observed_standard_deviation
+            ),
+            "generated_to_observed_std_ratio_station_min": float(
+                np.min(station_diversity_ratios)
+            ),
+            "generated_to_observed_std_ratio_station_median": float(
+                np.median(station_diversity_ratios)
+            ),
+            "generated_to_observed_std_ratio_station_max": float(
+                np.max(station_diversity_ratios)
             ),
         }
 
@@ -714,7 +829,7 @@ class RecurrentConditionalGAN(ProbabilisticSequenceModel):
 
         with np.load(Path(path), allow_pickle=False) as archive:
             schema_version = str(archive["schema_version"].item())
-            if schema_version != RCGAN_MODEL_SCHEMA_VERSION:
+            if schema_version not in SUPPORTED_RCGAN_MODEL_SCHEMA_VERSIONS:
                 raise ValueError(f"unsupported RC-GAN model schema {schema_version!r}")
             if str(archive["model_name"].item()) != "recurrent_conditional_gan":
                 raise ValueError("persisted artifact is not an LEEM RC-GAN")

@@ -13,8 +13,10 @@ class RCGANConfig:
 
     The 32-dimensional noise, 64-unit recurrent/dense layers, Adam coefficients,
     learning rate, dropout, and four epochs reproduce the settings reported by
-    Arnelid et al.  The paper's final conference architecture used two recurrent
-    layers in the deep context and discriminator paths.
+    Arnelid et al.  The optional discriminator learning-rate override is a
+    declared LEEM stabilization adaptation; when absent, both optimizers retain
+    the paper's shared learning rate.  The paper's final conference architecture
+    used two recurrent layers in the deep context and discriminator paths.
     """
 
     latent_size: int = 32
@@ -29,6 +31,7 @@ class RCGANConfig:
     epochs: int = 4
     batch_size: int = 1
     learning_rate: float = 1e-5
+    discriminator_learning_rate: float | None = None
     adam_beta1: float = 0.5
     adam_beta2: float = 0.999
     gradient_clip_norm: float = 1.0
@@ -73,12 +76,25 @@ class RCGANConfig:
                 or not math.isfinite(float(value))
             ):
                 raise ValueError(f"{name} must be a finite number")
+        if self.discriminator_learning_rate is not None and (
+            isinstance(self.discriminator_learning_rate, bool)
+            or not isinstance(self.discriminator_learning_rate, (int, float))
+            or not math.isfinite(float(self.discriminator_learning_rate))
+        ):
+            raise ValueError(
+                "discriminator_learning_rate must be null or a finite number"
+            )
         if not 0.0 <= self.discriminator_dropout < 1.0:
             raise ValueError("discriminator_dropout must lie in [0, 1)")
         if not 0.0 < self.leaky_relu_slope < 1.0:
             raise ValueError("leaky_relu_slope must lie in (0, 1)")
         if self.learning_rate <= 0.0:
             raise ValueError("learning_rate must be positive")
+        if (
+            self.discriminator_learning_rate is not None
+            and self.discriminator_learning_rate <= 0.0
+        ):
+            raise ValueError("discriminator_learning_rate must be positive")
         if not 0.0 <= self.adam_beta1 < 1.0 or not 0.0 <= self.adam_beta2 < 1.0:
             raise ValueError("Adam beta values must lie in [0, 1)")
         if self.gradient_clip_norm <= 0.0:
@@ -91,6 +107,14 @@ class RCGANConfig:
             raise ValueError("initialization_seed must be a non-negative integer")
         if self.device not in {"cpu", "cuda"}:
             raise ValueError("device must be either 'cpu' or 'cuda'")
+
+    @property
+    def effective_discriminator_learning_rate(self) -> float:
+        """Return the discriminator rate, preserving the shared-rate default."""
+
+        if self.discriminator_learning_rate is None:
+            return float(self.learning_rate)
+        return float(self.discriminator_learning_rate)
 
     def to_dict(self) -> dict[str, object]:
         self.validate()

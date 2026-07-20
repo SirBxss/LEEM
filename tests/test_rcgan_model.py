@@ -93,6 +93,24 @@ class RCGANConfigurationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown"):
             RCGANConfig.from_dict({"not_a_parameter": 1})
 
+    def test_discriminator_learning_rate_defaults_and_override(self) -> None:
+        shared = RCGANConfig(learning_rate=3e-5)
+        asymmetric = RCGANConfig(
+            learning_rate=3e-5,
+            discriminator_learning_rate=1e-5,
+        )
+        self.assertEqual(shared.effective_discriminator_learning_rate, 3e-5)
+        self.assertEqual(
+            asymmetric.effective_discriminator_learning_rate,
+            1e-5,
+        )
+        self.assertEqual(
+            RCGANConfig.from_dict(asymmetric.to_dict()),
+            asymmetric,
+        )
+        with self.assertRaisesRegex(ValueError, "discriminator_learning_rate"):
+            RCGANConfig(discriminator_learning_rate=0.0).validate()
+
 
 @unittest.skipUnless(TORCH_AVAILABLE, "RC-GAN tests require the optional PyTorch extra")
 class RecurrentConditionalGANTest(unittest.TestCase):
@@ -116,7 +134,9 @@ class RecurrentConditionalGANTest(unittest.TestCase):
 
     def test_fit_masked_sequences_and_seeded_sampling(self) -> None:
         dataset = _dataset(10)
-        model = RecurrentConditionalGAN(_config())
+        model = RecurrentConditionalGAN(
+            _config(discriminator_learning_rate=0.0005)
+        )
         report = model.fit(dataset, dataset)
         self.assertTrue(model.is_fitted)
         self.assertFalse(model.capabilities.supports_log_probability)
@@ -125,10 +145,27 @@ class RecurrentConditionalGANTest(unittest.TestCase):
         self.assertIn(
             "validation_discriminator_real_probability", report.metrics
         )
+        self.assertIn("train_generator_noise_gradient_norm", report.metrics)
+        self.assertIn(
+            "train_generator_noise_to_context_gradient_ratio",
+            report.metrics,
+        )
+        self.assertIn(
+            "generated_to_observed_std_ratio_station_median",
+            report.metrics,
+        )
         self.assertGreaterEqual(
             report.metrics["generated_to_observed_std_ratio"], 0.0
         )
         self.assertEqual(len(model.training_history), 1)
+        self.assertEqual(
+            model.training_history[0]["generator_learning_rate"],
+            0.001,
+        )
+        self.assertEqual(
+            model.training_history[0]["discriminator_learning_rate"],
+            0.0005,
+        )
         first = model.sample(
             dataset.conditions,
             dataset.lengths,
@@ -171,6 +208,7 @@ class RecurrentConditionalGANTest(unittest.TestCase):
                 self.assertEqual(
                     str(archive["model_name"].item()), "recurrent_conditional_gan"
                 )
+                self.assertEqual(str(archive["schema_version"].item()), "1.1.0")
             restored = RecurrentConditionalGAN.load(path)
         actual = restored.sample(
             dataset.conditions, dataset.lengths, n_samples=3, seed=52

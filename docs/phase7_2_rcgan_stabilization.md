@@ -185,11 +185,19 @@ Phase 7.2 passes only when all tests pass, at least one candidate passes every
 enabled validation gate, test access occurs only after selection, and all
 candidate histories and gate values are persisted.
 
-If it passes, freeze the selected learning rate and paper-faithful batch size in
-the prototype configuration before running all three scenarios. If it fails,
-do not run the prototype. The next step must be a documented model/training
-revision or a thesis-scope decision, made from training/validation evidence—not
-repeated test inspection.
+Phase 7.2 failed this gate. All three candidates were rejected and the test split
+remained unopened. The validation results were:
+
+| Shared rate | Diversity ratio | Coverage/reference | Late mean G clipping | Energy Score |
+|---:|---:|---:|---:|---:|
+| $10^{-5}$ | 0.0741 | 0.1080 | 0.0000 | 0.0556 |
+| $3\times10^{-5}$ | 0.0777 | 0.0985 | 0.3646 | 0.0653 |
+| $5\times10^{-5}$ | 0.0945 | 0.0355 | 0.7474 | 0.1659 |
+
+The result does not authorize a prototype run. It motivates exactly one bounded
+training revision: [Phase 7.3](phase7_3_rcgan_asymmetric_optimizer.md) fixes the
+discriminator at $10^{-5}$ while testing two higher generator rates, without
+changing the paper-based architecture or reusing test evidence.
 
 ## 8. Files in Phase 7.2
 

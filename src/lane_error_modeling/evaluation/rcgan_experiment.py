@@ -63,11 +63,22 @@ def _manifest_record(
     return records[0]
 
 
+def _portable_path(path: Path, project_root: Path) -> str:
+    """Prefer project-relative provenance without hiding external test fixtures."""
+
+    try:
+        return path.resolve().relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
 def _load_verified_split(
     dataset_root: Path,
     manifest: Mapping[str, Any],
     scenario: str,
     split: str,
+    *,
+    project_root: Path,
 ) -> tuple[PaddedDataset, dict[str, object]]:
     path = dataset_root / scenario / f"{split}.npz"
     record = _manifest_record(manifest, scenario, split)
@@ -76,7 +87,7 @@ def _load_verified_split(
         raise ValueError(f"checksum mismatch for {scenario}/{split}")
     padded = load_dataset(path)
     return padded, {
-        "path": path.as_posix(),
+        "path": _portable_path(path, project_root),
         "sha256": actual_checksum,
         "size_bytes": path.stat().st_size,
         "sequence_count": padded.lengths.size,
@@ -148,6 +159,19 @@ def _maximum_check(
     }
 
 
+def _optional_maximum_check(
+    *, metric: str, value: float | None, maximum: float | None
+) -> dict[str, object]:
+    enabled = maximum is not None
+    return {
+        "enabled": enabled,
+        "metric": metric,
+        "value": value,
+        "maximum": maximum,
+        "passed": (not enabled) or (value is not None and value <= maximum),
+    }
+
+
 def _validation_evaluation_summary(evaluation) -> dict[str, object]:
     return {
         "global_metrics": dict(evaluation.global_metrics),
@@ -200,6 +224,20 @@ def _stability_gate(
     discriminator_probability_gap = abs(
         late_real_probability - late_fake_probability
     )
+    selected_late_history = training_history[
+        -min(checks.late_epoch_count, len(training_history)) :
+    ]
+    worst_late_generator_clipping = max(
+        record["train_generator_gradient_clipped_fraction"]
+        for record in selected_late_history
+    )
+    worst_late_discriminator_probability_gap = max(
+        abs(
+            record["validation_discriminator_real_probability"]
+            - record["validation_discriminator_fake_probability"]
+        )
+        for record in selected_late_history
+    )
 
     interval_key = f"{checks.interval_level:.2f}"
     if interval_key not in validation_evaluation.interval_metrics:
@@ -246,10 +284,24 @@ def _stability_gate(
             value=late_generator_clipping,
             maximum=checks.maximum_generator_clipped_fraction,
         ),
+        "worst_late_generator_gradient_clipping": _maximum_check(
+            metric="worst_late_generator_gradient_clipped_fraction",
+            value=worst_late_generator_clipping,
+            maximum=(
+                checks.maximum_worst_late_generator_clipped_fraction
+            ),
+        ),
         "late_discriminator_separation": _maximum_check(
             metric="mean_late_discriminator_probability_gap",
             value=discriminator_probability_gap,
             maximum=checks.maximum_discriminator_probability_gap,
+        ),
+        "worst_late_discriminator_separation": _maximum_check(
+            metric="worst_late_discriminator_probability_gap",
+            value=worst_late_discriminator_probability_gap,
+            maximum=(
+                checks.maximum_worst_late_discriminator_probability_gap
+            ),
         ),
         "interval_coverage": _minimum_check(
             metric=(
@@ -271,6 +323,16 @@ def _stability_gate(
                 checks.minimum_tail_exceedance_fraction_of_observed
             ),
         ),
+        "tail_over_exceedance": _optional_maximum_check(
+            metric=(
+                f"validation_generated_{tail_label}_exceedance_fraction_of_"
+                "observed"
+            ),
+            value=exceedance_fraction,
+            maximum=(
+                checks.maximum_tail_exceedance_fraction_of_observed
+            ),
+        ),
     }
     rejection_reasons = [
         name
@@ -287,6 +349,12 @@ def _stability_gate(
         "late_epoch_count": min(checks.late_epoch_count, len(training_history)),
         "late_validation_discriminator_real_probability": late_real_probability,
         "late_validation_discriminator_fake_probability": late_fake_probability,
+        "worst_late_generator_gradient_clipped_fraction": (
+            worst_late_generator_clipping
+        ),
+        "worst_late_discriminator_probability_gap": (
+            worst_late_discriminator_probability_gap
+        ),
         "validation_interval_empirical_coverage": empirical_coverage,
         "validation_interval_reference_coverage": reference_coverage,
         "validation_observed_tail_exceedance": observed_exceedance,
@@ -296,7 +364,8 @@ def _stability_gate(
         "interpretation": (
             "validation-only engineering guards against under-dispersion, unstable "
             "optimization, discriminator domination, poor interval coverage, and "
-            "missing tails; passing candidates are ranked only by Energy Score"
+            "missing or excessive tails; passing candidates are ranked only by "
+            "Energy Score"
         ),
     }
 
@@ -550,10 +619,18 @@ def run_rcgan_experiment(
         scenario_output = destination / scenario
         scenario_output.mkdir(parents=True, exist_ok=True)
         train_padded, train_provenance = _load_verified_split(
-            dataset_root, source_manifest, scenario, "train"
+            dataset_root,
+            source_manifest,
+            scenario,
+            "train",
+            project_root=root,
         )
         validation_padded, validation_provenance = _load_verified_split(
-            dataset_root, source_manifest, scenario, "validation"
+            dataset_root,
+            source_manifest,
+            scenario,
+            "validation",
+            project_root=root,
         )
         raw_train = _model_dataset(train_padded)
         raw_validation = _model_dataset(validation_padded)
@@ -631,7 +708,11 @@ def run_rcgan_experiment(
 
         # Test remains unopened until the candidate index is irrevocably frozen.
         test_padded, test_provenance = _load_verified_split(
-            dataset_root, source_manifest, scenario, "test"
+            dataset_root,
+            source_manifest,
+            scenario,
+            "test",
+            project_root=root,
         )
         raw_test = _model_dataset(test_padded)
         oracle_conditional_mean = test_padded.conditional_mean
@@ -746,11 +827,11 @@ def run_rcgan_experiment(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_family": "recurrent_conditional_gan",
         "source_configuration": {
-            "path": source_config_path.as_posix(),
+            "path": _portable_path(source_config_path, root),
             "sha256": sha256_file(source_config_path),
         },
         "source_dataset_manifest": {
-            "path": source_manifest_path.as_posix(),
+            "path": _portable_path(source_manifest_path, root),
             "sha256": sha256_file(source_manifest_path),
         },
         "scientific_scope": (
@@ -767,8 +848,8 @@ def run_rcgan_experiment(
             "interpretation": (
                 "validation-only engineering guards against severe "
                 "under-dispersion, persistent clipping, discriminator domination, "
-                "poor interval coverage, and missing tails; these are not common "
-                "leaderboard metrics or claims of calibration"
+                "poor interval coverage, and missing or excessive tails; these are "
+                "not common leaderboard metrics or claims of calibration"
             ),
         },
         "paper_basis": {

@@ -29,9 +29,13 @@ class RCGANExperimentConfigurationTest(unittest.TestCase):
         pilot_v2 = RCGANExperimentConfig.load(
             project_root / "configs" / "rcgan_experiment_pilot_v2.json"
         )
+        pilot_v3 = RCGANExperimentConfig.load(
+            project_root / "configs" / "rcgan_experiment_pilot_v3.json"
+        )
         self.assertEqual(len(smoke.rcgan_search.candidates()), 1)
         self.assertEqual(len(pilot.rcgan_search.candidates()), 3)
         self.assertEqual(len(pilot_v2.rcgan_search.candidates()), 3)
+        self.assertEqual(len(pilot_v3.rcgan_search.candidates()), 2)
         self.assertEqual(len(prototype.rcgan_search.candidates()), 2)
         self.assertEqual(
             [candidate.learning_rate for candidate in pilot.rcgan_search.candidates()],
@@ -55,6 +59,28 @@ class RCGANExperimentConfigurationTest(unittest.TestCase):
         self.assertEqual(
             pilot_v2.stability_checks.minimum_tail_exceedance_fraction_of_observed,
             0.20,
+        )
+        self.assertEqual(
+            [
+                candidate.learning_rate
+                for candidate in pilot_v3.rcgan_search.candidates()
+            ],
+            [3e-5, 5e-5],
+        )
+        self.assertEqual(
+            [
+                candidate.effective_discriminator_learning_rate
+                for candidate in pilot_v3.rcgan_search.candidates()
+            ],
+            [1e-5, 1e-5],
+        )
+        self.assertEqual(
+            pilot_v3.stability_checks.maximum_tail_exceedance_fraction_of_observed,
+            5.0,
+        )
+        self.assertEqual(
+            pilot_v3.stability_checks.maximum_worst_late_generator_clipped_fraction,
+            0.50,
         )
         self.assertEqual(prototype.rcgan_search.candidates()[0].latent_size, 32)
         self.assertEqual(prototype.rcgan_search.candidates()[0].context_layers, 2)
@@ -86,6 +112,17 @@ class RCGANExperimentConfigurationTest(unittest.TestCase):
         ).to_dict()
         source["stability_checks"]["interval_level"] = 0.80
         with self.assertRaisesRegex(ValueError, "interval_level"):
+            RCGANExperimentConfig.from_dict(source)
+
+    def test_tail_stability_range_must_be_ordered(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        source = RCGANExperimentConfig.load(
+            project_root / "configs" / "rcgan_experiment_pilot_v3.json"
+        ).to_dict()
+        source["stability_checks"][
+            "maximum_tail_exceedance_fraction_of_observed"
+        ] = 0.1
+        with self.assertRaisesRegex(ValueError, "must not be below"):
             RCGANExperimentConfig.from_dict(source)
 
 
@@ -130,10 +167,21 @@ class RCGANExperimentRunnerTest(unittest.TestCase):
             self.assertFalse(selection["stability_gate"]["enabled"])
             self.assertTrue(selection["stability_gate"]["passed"])
             self.assertIn(
+                "worst_late_generator_gradient_clipping",
+                selection["stability_gate"]["checks"],
+            )
+            self.assertIn(
+                "tail_over_exceedance",
+                selection["stability_gate"]["checks"],
+            )
+            self.assertIn(
                 "generated_to_observed_std_ratio",
                 selection["candidates"][0]["fit_report"]["metrics"],
             )
             self.assertFalse(result["density_metrics"]["available"])
+            self.assertFalse(
+                Path(result["data_provenance"]["test"]["path"]).is_absolute()
+            )
             self.assertEqual(result["architecture"]["noise_layers"], 1)
             self.assertTrue((scenario_output / "rcgan_model.npz").is_file())
 
@@ -175,6 +223,9 @@ class RCGANExperimentRunnerTest(unittest.TestCase):
             self.assertFalse(selection["test_data_accessed"])
             self.assertFalse(result["test_data_accessed"])
             self.assertNotIn("test", result["data_provenance"])
+            self.assertFalse(
+                Path(result["data_provenance"]["train"]["path"]).is_absolute()
+            )
             self.assertEqual(selection["candidates"][0]["status"], "rejected")
             self.assertGreater(
                 len(selection["candidates"][0]["training_history"]),
